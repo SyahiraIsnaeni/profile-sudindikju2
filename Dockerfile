@@ -23,16 +23,22 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install build tools juga di production untuk next dev
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install all dependencies
+# Install all dependencies (termasuk devDependencies untuk dev mode)
 RUN npm ci
 
-# Copy built app from builder
+# Copy built app dari builder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY prisma ./prisma
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # Expose port
 EXPOSE 3000

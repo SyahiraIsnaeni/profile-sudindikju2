@@ -13,9 +13,33 @@ model Role {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  users     User[]  @relation("UserRoles")
+  users           User[]
+  rolePermissions RolePermission[]
 
   @@map("roles")
+}
+
+model Permission {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role_id       Int
+  permission_id Int
+  created_at    DateTime @default(now())
+
+  role       Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
 }
 
 model User {
@@ -29,7 +53,7 @@ model User {
   updated_at DateTime @updatedAt
   deleted_at DateTime?
 
-  role      Role?   @relation("UserRoles", fields: [role_id], references: [id], onDelete: SetNull)
+  role      Role?   @relation(fields: [role_id], references: [id], onDelete: SetNull)
 
   @@map("users")
 }

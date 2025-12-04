@@ -17,10 +17,11 @@
     "db:migration:create": "prisma migrate dev --name"
   },
   "dependencies": {
-    "@prisma/client": "^7.1.0",
+    "@prisma/client": "6.19.0",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^0.555.0",
     "next": "16.0.5",
+    "prisma": "6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },

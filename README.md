@@ -184,30 +184,113 @@ docker-compose exec app npx prisma generate
 # Expected: ✔ Generated Prisma Client
 ```
 
-### 2. Create & Deploy Migration
+### 2. Create Migration File (Auto-Generate Timestamp)
 
-**Option A: Create New Migration**
+User membuat file migration dengan timestamp otomatis, tapi isi SQL sendiri:
+
+**Step 1: Create Migration File**
 ```bash
-docker-compose exec app npx prisma migrate dev --name create_users_table
+npm run create:migration -- create_articles_table
 
 # Expected:
-# ✔ Created prisma/migrations/[timestamp]_create_users_table/migration.sql
-# ✔ Successfully applied migration(s)
+# ✅ Created migration folder: prisma/migrations/20251204120530_create_articles_table
+# ✅ Created migration file: prisma/migrations/20251204120530_create_articles_table/migration.sql
+# 
+# 📝 Next steps:
+#    1. Edit file: prisma/migrations/20251204120530_create_articles_table/migration.sql
+#    2. Write your SQL code
+#    3. Run: npm run db:migrate
+#    4. Verify: docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "\dt"
 ```
 
-**Option B: Deploy Existing Migration**
+**Step 2: Edit Migration File**
+
+File: `prisma/migrations/20251204120530_create_articles_table/migration.sql`
+
+```sql
+-- create_articles_table
+CREATE TABLE "articles" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "title" VARCHAR(255) NOT NULL,
+    "content" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
+);
+
+CREATE INDEX "articles_title_idx" ON "articles"("title");
+```
+
+### 3. Apply Migration File Ke Database
+
 ```bash
-docker-compose exec app npx prisma migrate deploy
+# Apply migration yang baru dibuat
+npm run db:migrate
 
 # Expected: ✔ Ran 1 migration(s)
 ```
 
-### 3. Check Migration Status
+### 4. Apply SEMUA Migration Files Sekaligus
+
+```bash
+# Apply semua pending migrations
+npm run db:migrate
+
+# Expected: ✔ Ran 3 migration(s)
+# (jika ada 3 pending migrations)
+```
+
+### 5. Check Migration Status
 
 ```bash
 docker-compose exec app npx prisma migrate status
 
 # Expected: Shows applied & pending migrations
+```
+
+### 6. Update Schema.prisma (Optional)
+
+Untuk Prisma Client auto-generation, update `schema.prisma`:
+
+```prisma
+model Article {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("articles")
+}
+```
+
+Terus generate Prisma Client:
+
+```bash
+docker-compose exec app npx prisma generate
+```
+
+---
+
+### **Full Migration Workflow:**
+
+```bash
+# 1. Generate migration file dengan timestamp otomatis
+npm run create:migration -- create_articles_table
+
+# 2. Edit migration.sql (tulis SQL sendiri)
+# vi prisma/migrations/20251204120530_create_articles_table/migration.sql
+
+# 3. Apply file itu ke database
+npm run db:migrate
+
+# 4. Verify table created
+docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "\dt"
+
+# 5. Update schema.prisma (opsional)
+# Add model Article { ... }
+
+# 6. Generate Prisma Client
+docker-compose exec app npx prisma generate
 ```
 
 ---

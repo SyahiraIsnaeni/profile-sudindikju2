@@ -1,0 +1,2 @@
+-- Initial database setup
+-- Database and user created by docker-compose environment variables

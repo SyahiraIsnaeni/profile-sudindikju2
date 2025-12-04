@@ -45,4 +45,4 @@ console.log(`\n📝 Next steps:`);
 console.log(`   1. Edit file: prisma/migrations/${folderName}/migration.sql`);
 console.log(`   2. Write your SQL code`);
 console.log(`   3. Run: docker-compose exec app npx prisma migrate deploy`);
-console.log(`   4. Verify: docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "\\dt"`);
+console.log(`   4. Verify: docker-compose exec postgres psql -U root -d aska_sudin -c "\\dt"`);

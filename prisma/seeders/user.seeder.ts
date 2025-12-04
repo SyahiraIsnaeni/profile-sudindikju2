@@ -1,41 +1,54 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
 
-export async function userSeeder(prisma: PrismaClient) {
-  console.log('📝 Seeding users table...');
+const prisma = new PrismaClient();
 
-  // Clear existing data (optional) - skip on first run
-  // await prisma.user.deleteMany();
+export async function seedUser() {
+  try {
+    console.log('📝 Seeding users table...');
 
-  const users = [
-    {
-      email: 'admin@gmail.com',
-      password: 'admin123456',
-      name: 'Admin Sudin',
-    },
-    {
-      email: 'user@gmail.com',
-      password: 'user123456',
-      name: 'User Sudin',
-    },
-  ];
-
-  for (const user of users) {
-    // Hash password
-    const hashedPassword = await bcrypt.hash(user.password, 10);
-
-    const created = await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: {
-        email: user.email,
-        password: hashedPassword,
-        name: user.name,
+    const users = [
+      {
+        email: 'admin@gmail.com',
+        password: 'admin123456',
+        name: 'Admin Sudin',
       },
-    });
+    ];
 
-    console.log(`  ✓ Created user: ${created.email}`);
+    for (const user of users) {
+      const hashedPassword = await bcryptjs.hash(user.password, 10);
+
+      const created = await prisma.user.upsert({
+        where: { email: user.email },
+        update: {},
+        create: {
+          email: user.email,
+          password: hashedPassword,
+          name: user.name,
+        },
+      });
+
+      console.log(`  ✓ Created user: ${created.email}`);
+    }
+
+    console.log(`📊 Total users seeded: ${users.length}`);
+  } catch (error) {
+    console.error('❌ Error seeding users:', error);
+    throw error;
   }
-
-  console.log(`📊 Total users seeded: ${users.length}`);
 }
+
+// Main function - untuk direct execution
+async function main() {
+  try {
+    await seedUser();
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// Run jika file dijalankan langsung
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

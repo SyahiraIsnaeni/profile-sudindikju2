@@ -15,7 +15,11 @@
     "db:migrate": "docker-compose exec app npx prisma migrate deploy",
     "db:seed": "docker-compose exec app npm run db:seed",
     "db:migrate:reset": "docker-compose exec app npx prisma migrate reset",
-    "generate:seeder": "node scripts/generate-seeder.js"
+    "generate:seeder": "node scripts/generate-seeder.js",
+    "create:seeder": "node scripts/create-seeder.js",
+    "seed": "npx ts-node --transpile-only prisma/seed.ts",
+    "seed:all": "docker-compose exec app npm run seed",
+    "seed:run": "docker-compose exec app npx ts-node --transpile-only prisma/seeders"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
@@ -38,6 +42,6 @@
     "typescript": "^5"
   },
   "prisma": {
-    "seed": "ts-node --transpile-only prisma/seed.ts"
+    "seed": "npx ts-node --transpile-only prisma/seed.ts"
   }
 }

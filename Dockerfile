@@ -3,10 +3,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies untuk native modules (lightningcss)
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install all dependencies
 RUN npm ci
 
 # Copy source code
@@ -23,12 +26,13 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev
+# Install all dependencies
+RUN npm ci
 
 # Copy built app from builder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY prisma ./prisma
 
 # Expose port
 EXPOSE 3000

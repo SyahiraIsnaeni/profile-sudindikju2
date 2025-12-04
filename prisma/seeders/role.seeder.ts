@@ -1,0 +1,36 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function seedRole() {
+  try {
+    console.log('📝 Seeding roles table...');
+
+    const roles = [
+      { name: 'admin' },
+      { name: 'kasudin' },
+      { name: 'kasubbag' },
+      { name: 'kasi' },
+      { name: 'staf' },
+    ];
+
+    for (const role of roles) {
+      const created = await prisma.role.upsert({
+        where: { name: role.name },
+        update: {},
+        create: {
+          name: role.name,
+        },
+      });
+
+      console.log(`  ✓ Created role: ${created.name}`);
+    }
+
+    console.log(`📊 Total roles seeded: ${roles.length}`);
+  } catch (error) {
+    console.error('❌ Error seeding roles:', error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}

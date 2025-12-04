@@ -121,10 +121,10 @@ Buat file `.env` di root folder:
 # Database Configuration
 DB_HOST=postgres
 DB_PORT=5432
-DB_NAME=sudin_pendidikan_db
-DB_USER=sudin_admin
+DB_NAME=aska_sudin
+DB_USER=root
 DB_PASSWORD=sudin_secure_password_2025
-DATABASE_URL=postgresql://sudin_admin:sudin_secure_password_2025@postgres:5432/sudin_pendidikan_db
+DATABASE_URL=postgresql://root:root@postgres:5432/aska_sudin
 
 # Next.js
 NODE_ENV=development
@@ -153,7 +153,7 @@ docker-compose ps
 
 ```bash
 # Test connection ke PostgreSQL
-docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "SELECT 1"
+docker-compose exec postgres psql -U root -d aska_sudin -c "SELECT 1"
 
 # Expected: (1 row) dengan nilai 1
 ```
@@ -200,7 +200,7 @@ npm run create:migration -- create_articles_table
 #    1. Edit file: prisma/migrations/20251204120530_create_articles_table/migration.sql
 #    2. Write your SQL code
 #    3. Run: npm run db:migrate
-#    4. Verify: docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "\dt"
+#    4. Verify: docker-compose exec postgres psql -U root -d aska_sudin -c "\dt"
 ```
 
 **Step 2: Edit Migration File**
@@ -284,7 +284,7 @@ npm run create:migration -- create_articles_table
 npm run db:migrate
 
 # 4. Verify table created
-docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "\dt"
+docker-compose exec postgres psql -U root -d aska_sudin -c "\dt"
 
 # 5. Update schema.prisma (opsional)
 # Add model Article { ... }
@@ -297,37 +297,126 @@ docker-compose exec app npx prisma generate
 
 ## 🌱 Seeding Database
 
-### 1. Run Seeder
+### 1. Create New Seeder File
 
 ```bash
-# Run all seeders
-docker-compose exec app npm run db:seed
+# Generate seeder template dengan timestamp otomatis
+npm run create:seeder -- user_seeder
+
+# Expected:
+# ✅ Created seeder file: prisma/seeders/user.seeder.ts
+# 📝 Next step: Edit file & add your seeding logic
+```
+
+File akan dibuat di: `prisma/seeders/user.seeder.ts`
+
+### 2. Edit Seeder File
+
+Buka `prisma/seeders/user.seeder.ts` dan tambahkan logic seeding:
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+import bcryptjs from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+export async function seedUser() {
+  try {
+    console.log('📝 Seeding users...');
+    
+    // Buat users
+    const adminPassword = await bcryptjs.hash('admin123456', 10);
+    const userPassword = await bcryptjs.hash('user123456', 10);
+    
+    await prisma.user.create({
+      data: {
+        nama: 'Admin Sudin',
+        email: 'admin@gmail.com',
+        password: adminPassword,
+      },
+    });
+    
+    await prisma.user.create({
+      data: {
+        nama: 'User Sudin',
+        email: 'user@gmail.com',
+        password: userPassword,
+      },
+    });
+    
+    console.log('✅ Users seeded successfully!');
+  } catch (error) {
+    console.error('❌ Error seeding users:', error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+```
+
+### 3. Update `prisma/seeders/index.ts`
+
+```typescript
+import { seedUser } from './user.seeder';
+
+async function main() {
+  try {
+    console.log('🌱 Starting database seeding...');
+    
+    await seedUser();
+    
+    console.log('✅ Seeding completed successfully!');
+  } catch (error) {
+    console.error('❌ Seeding failed:', error);
+    process.exit(1);
+  }
+}
+
+main();
+```
+
+### 4. Run Seeder
+
+```bash
+# Run semua seeders
+npm run seed
+
+# Atau dengan alias
+npm run seed:all
 
 # Expected:
 # 🌱 Starting database seeding...
-# 📝 Seeding users table...
-#   ✓ Created user: admin@gmail.com
-#   ✓ Created user: user@gmail.com
+# 📝 Seeding users...
+# ✅ Users seeded successfully!
 # ✅ Seeding completed successfully!
 ```
 
-### 2. Reset Database & Re-seed
+### 5. Run Seeder Tertentu
+
+```bash
+# Run seeder file tertentu
+npm run seed:run -- user.seeder.ts
+
+# Expected: Output dari seeder tersebut saja
+```
+
+### 6. Reset Database & Re-seed
 
 ```bash
 # Drops database, create baru, run migrations, seed
 docker-compose exec app npx prisma migrate reset
 
-# Expected: Same output as above
+# Expected: Same output as seeding
 ```
 
-### 3. Verify Data
+### 7. Verify Data
 
 ```bash
 # Query users table
-docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "SELECT email, name FROM users;"
+docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db -c "SELECT email, nama FROM users;"
 
 # Expected:
-#        email       |     name
+#        email       |     nama
 # ------------------+---------------
 #  admin@gmail.com   | Admin Sudin
 #  user@gmail.com    | User Sudin
@@ -412,7 +501,7 @@ docker-compose exec app npx prisma studio
 
 ```bash
 # Connect to PostgreSQL
-docker-compose exec postgres psql -U sudin_admin -d sudin_pendidikan_db
+docker-compose exec postgres psql -U root -d aska_sudin
 
 # Query in psql
 # \dt                          - list tables

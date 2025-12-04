@@ -12,6 +12,7 @@ export async function seedUser() {
         email: 'admin@gmail.com',
         password: 'admin123456',
         name: 'Admin Sudin',
+        status: 1,
       },
     ];
 

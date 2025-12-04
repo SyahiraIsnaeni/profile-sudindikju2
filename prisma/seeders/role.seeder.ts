@@ -7,11 +7,11 @@ export async function seedRole() {
     console.log('📝 Seeding roles table...');
 
     const roles = [
-      { name: 'admin' },
-      { name: 'kasudin' },
-      { name: 'kasubbag' },
-      { name: 'kasi' },
-      { name: 'staf' },
+      { name: 'admin', status: 1 },
+      { name: 'kasudin', status: 1 },
+      { name: 'kasubbag', status: 1 },
+      { name: 'kasi', status: 1 },
+      { name: 'staf', status: 1 },
     ];
 
     for (const role of roles) {
@@ -20,6 +20,7 @@ export async function seedRole() {
         update: {},
         create: {
           name: role.name,
+          status: role.status,
         },
       });
 

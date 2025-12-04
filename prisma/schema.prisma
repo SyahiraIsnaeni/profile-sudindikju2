@@ -10,10 +10,11 @@ datasource db {
 model Role {
   id        Int     @id @default(autoincrement())
   name      String  @unique
+  status    Int     @default(1)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  users           User[]
+  users           User[]  @relation("UserRoles")
   rolePermissions RolePermission[]
 
   @@map("roles")
@@ -49,11 +50,12 @@ model User {
   password  String
   token_oauth String?
   role_id   Int?
+  status    Int     @default(1)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   deleted_at DateTime?
 
-  role      Role?   @relation(fields: [role_id], references: [id], onDelete: SetNull)
+  role      Role?   @relation("UserRoles", fields: [role_id], references: [id], onDelete: SetNull)
 
   @@map("users")
 }

@@ -15,38 +15,90 @@ interface Role {
   status: number;
 }
 
+interface PaginationMeta {
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  meta: PaginationMeta;
+}
+
 export const useMasterData = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [userPage, setUserPage] = useState(1);
+  const [rolePage, setRolePage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [usersMeta, setUsersMeta] = useState<PaginationMeta | null>(null);
+  const [rolesMeta, setRolesMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchUsers();
+  }, [userPage, pageSize]);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    fetchRoles();
+  }, [rolePage, pageSize]);
+
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-
-      const usersRes = await fetch('/api/master-data/users');
-      if (!usersRes.ok) throw new Error('Failed to fetch users');
-      const usersData = await usersRes.json();
-      setUsers(usersData.data);
-
-      const rolesRes = await fetch('/api/master-data/roles');
-      if (!rolesRes.ok) throw new Error('Failed to fetch roles');
-      const rolesData = await rolesRes.json();
-      setRoles(rolesData.data);
-
+      const offset = (userPage - 1) * pageSize;
+      const res = await fetch(
+        `/api/master-data/users?page=${userPage}&pageSize=${pageSize}&offset=${offset}`
+      );
+      if (!res.ok) throw new Error('Failed to fetch users');
+      const data: PaginatedResponse<User> = await res.json();
+      setUsers(data.data);
+      setUsersMeta(data.meta);
       setError(null);
     } catch (err: any) {
       setError(err.message);
-      console.error('Error fetching master data:', err);
+      console.error('Error fetching users:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  return { users, roles, loading, error };
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const offset = (rolePage - 1) * pageSize;
+      const res = await fetch(
+        `/api/master-data/roles?page=${rolePage}&pageSize=${pageSize}&offset=${offset}`
+      );
+      if (!res.ok) throw new Error('Failed to fetch roles');
+      const data: PaginatedResponse<Role> = await res.json();
+      setRoles(data.data);
+      setRolesMeta(data.meta);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error fetching roles:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    users,
+    roles,
+    loading,
+    error,
+    userPage,
+    setUserPage,
+    rolePage,
+    setRolePage,
+    pageSize,
+    setPageSize,
+    usersMeta,
+    rolesMeta,
+  };
 };

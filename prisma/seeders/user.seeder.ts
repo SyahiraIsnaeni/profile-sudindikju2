@@ -4,8 +4,8 @@ import bcrypt from 'bcryptjs';
 export async function userSeeder(prisma: PrismaClient) {
   console.log('📝 Seeding users table...');
 
-  // Clear existing data (optional)
-  await prisma.user.deleteMany();
+  // Clear existing data (optional) - skip on first run
+  // await prisma.user.deleteMany();
 
   const users = [
     {

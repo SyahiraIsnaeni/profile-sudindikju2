@@ -11,10 +11,11 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",
-    "generate:seeder": "node scripts/generate-seeder.js",
-    "db:seed": "prisma db seed",
-    "db:migrate": "prisma migrate deploy",
-    "db:migration:create": "prisma migrate dev --name"
+    "create:migration": "node scripts/create-migration.js",
+    "db:migrate": "docker-compose exec app npx prisma migrate deploy",
+    "db:seed": "docker-compose exec app npm run db:seed",
+    "db:migrate:reset": "docker-compose exec app npx prisma migrate reset",
+    "generate:seeder": "node scripts/generate-seeder.js"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",

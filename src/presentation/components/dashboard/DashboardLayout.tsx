@@ -28,7 +28,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <footer className="bg-white border-t border-gray-200 px-4 md:px-8 py-4 mt-auto">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="text-xs md:text-sm text-gray-600">
-              <p>© 2025 SDN Sukapura 01. All Rights Reserved.</p>
+              <p>© 2025 Sudin Pendidikan Jakarta Utara Wilayah II. All Rights Reserved.</p>
               <p>Handcrafted and made with <span className="text-red-500">❤</span> by Tim IT Sudindik JU2</p>
             </div>
             <div className="text-xs text-gray-500">

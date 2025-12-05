@@ -13,6 +13,13 @@ interface User {
   name: string;
   email: string;
   role_id?: number | null;
+  status: number;
+}
+
+interface LoginResponse {
+  success: boolean;
+  user: User;
+  message: string;
 }
 
 export const useLogin = () => {
@@ -22,6 +29,7 @@ export const useLogin = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
@@ -31,60 +39,74 @@ export const useLogin = () => {
       ...prev,
       [name]: value,
     }));
+    setError(null);
+    setSuccess(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      // Simulate API call - replace dengan actual API
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
-
-      // Untuk sekarang, simulasi dengan localStorage
-      const mockUsers = [
-        {
-          id: 1,
-          name: 'Admin Sudin',
-          email: 'admin@gmail.com',
-          role_id: 1,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          id: 2,
-          name: 'User Sudin',
-          email: 'user@gmail.com',
-          role_id: 3,
-        },
-      ];
+        body: JSON.stringify(formData),
+      });
 
-      const foundUser = mockUsers.find((u) => u.email === formData.email);
+      const data: LoginResponse = await response.json();
 
-      if (!foundUser) {
-        throw new Error('User not found');
+      if (!response.ok) {
+        throw new Error(data.error || 'Login gagal');
       }
 
-      // Store user di localStorage
-      localStorage.setItem('user', JSON.stringify(foundUser));
-      setUser(foundUser);
+      // Simpan user data di localStorage
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect ke dashboard
-      router.push('/dashboard');
+      // Set auth token di cookie (via API call)
+      await fetch('/api/auth/set-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: data.user.id }),
+      });
+
+      setUser(data.user);
+      setSuccess(`${data.message} Selamat datang, ${data.user.name}!`);
+
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login gagal, coba lagi');
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    router.push('/login');
+  const logout = async () => {
+    try {
+      // Clear auth token via API
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      localStorage.removeItem('user');
+      setUser(null);
+
+      // Hard redirect ke login (clear browser cache)
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback jika API error
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
   };
 
   const getCurrentUser = () => {
@@ -101,6 +123,7 @@ export const useLogin = () => {
     handleSubmit,
     loading,
     error,
+    success,
     user,
     logout,
     getCurrentUser,

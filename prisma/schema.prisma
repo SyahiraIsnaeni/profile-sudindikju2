@@ -64,14 +64,14 @@ model User {
 
 model Profile {
   id                  Int       @id @default(autoincrement())
-  deskripsi           String?   @db.Text
-  visi                String?   @db.Text
-  misi                String?   @db.Text
+  description         String?   @db.Text @map("deskripsi")
+  vision              String?   @db.Text @map("visi")
+  mission             String?   @db.Text @map("misi")
   motto               String?   @db.Text
-  struktur_organisasi String?   @db.VarChar(255)
+  structure_org       String?   @db.VarChar(255) @map("struktur_organisasi")
   maklumat            String?   @db.VarChar(255)
-  tugas               String?   @db.Text
-  fungsi              String?   @db.Text
+  task_org            String?   @db.Text @map("tugas")
+  function_org        String?   @db.Text @map("fungsi")
   created_at          DateTime  @default(now())
   updated_at          DateTime  @updatedAt
 

@@ -48,14 +48,19 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
                     Tugas
                 </label>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <RichTextToolbar />
+                    <RichTextToolbar editorRef={tugasEditorRef} />
                     {/* Content Editor */}
                     <div
                         ref={tugasEditorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        className="w-full h-40 p-4 border-none outline-none resize-none overflow-auto text-left"
-                        style={{ minHeight: '160px', direction: 'ltr', unicodeBidi: 'embed' }}
+                        dir="ltr"
+                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                        style={{ 
+                            minHeight: '160px', 
+                            direction: 'ltr', 
+                            textAlign: 'left'
+                        }}
                         onInput={(e) => setTugas((e.target as HTMLDivElement).innerHTML)}
                         dangerouslySetInnerHTML={{ __html: tugas }}
                     />
@@ -68,14 +73,19 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
                     Fungsi
                 </label>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <RichTextToolbar />
+                    <RichTextToolbar editorRef={fungsiEditorRef} />
                     {/* Content Editor */}
                     <div
                         ref={fungsiEditorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        className="w-full h-40 p-4 border-none outline-none resize-none overflow-auto text-left"
-                        style={{ minHeight: '160px', direction: 'ltr', unicodeBidi: 'embed' }}
+                        dir="ltr"
+                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                        style={{ 
+                            minHeight: '160px', 
+                            direction: 'ltr', 
+                            textAlign: 'left'
+                        }}
                         onInput={(e) => setFungsi((e.target as HTMLDivElement).innerHTML)}
                         dangerouslySetInnerHTML={{ __html: fungsi }}
                     />

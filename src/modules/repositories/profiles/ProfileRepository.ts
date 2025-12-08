@@ -7,14 +7,22 @@ const prisma = new PrismaClient();
 export class ProfileRepository {
     /**
      * Get profile by ID (default ID=1)
+     * Auto-create empty profile if not exists
      */
     async getProfile(id: number = 1): Promise<Profile | null> {
         try {
-            const data = await prisma.profile.findUnique({
+            let data = await prisma.profile.findUnique({
                 where: { id },
             });
 
-            if (!data) return null;
+            // Auto-create empty profile if not exists
+            if (!data) {
+                data = await prisma.profile.create({
+                    data: {
+                        id,
+                    },
+                });
+            }
 
             return new Profile({
                 id: data.id,

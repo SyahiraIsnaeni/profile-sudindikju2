@@ -56,14 +56,19 @@ export function DeskripsiMottoTab({
                     Deskripsi
                 </label>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <RichTextToolbar />
+                    <RichTextToolbar editorRef={deskripsiEditorRef} />
                     {/* Content Editor */}
                     <div
                         ref={deskripsiEditorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        className="w-full h-40 p-4 border-none outline-none resize-none overflow-auto text-left"
-                        style={{ minHeight: '160px', direction: 'ltr', unicodeBidi: 'embed' }}
+                        dir="ltr"
+                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                        style={{ 
+                            minHeight: '160px', 
+                            direction: 'ltr', 
+                            textAlign: 'left'
+                        }}
                         onInput={(e) =>
                             setDeskripsi((e.target as HTMLDivElement).innerHTML)
                         }
@@ -78,14 +83,19 @@ export function DeskripsiMottoTab({
                     Motto
                 </label>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <RichTextToolbar />
+                    <RichTextToolbar editorRef={mottoEditorRef} />
                     {/* Content Editor */}
                     <div
                         ref={mottoEditorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        className="w-full h-40 p-4 border-none outline-none resize-none overflow-auto text-left"
-                        style={{ minHeight: '160px', direction: 'ltr', unicodeBidi: 'embed' }}
+                        dir="ltr"
+                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                        style={{ 
+                            minHeight: '160px', 
+                            direction: 'ltr', 
+                            textAlign: 'left'
+                        }}
                         onInput={(e) =>
                             setMotto((e.target as HTMLDivElement).innerHTML)
                         }

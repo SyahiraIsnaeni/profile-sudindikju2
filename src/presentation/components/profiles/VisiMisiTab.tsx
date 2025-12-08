@@ -48,14 +48,19 @@ export function VisiMisiTab({ profile, loading, onUpdate }: VisiMisiTabProps) {
                     Visi
                 </label>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <RichTextToolbar />
+                    <RichTextToolbar editorRef={visiEditorRef} />
                     {/* Content Editor */}
                     <div
                         ref={visiEditorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        className="w-full h-40 p-4 border-none outline-none resize-none overflow-auto text-left"
-                        style={{ minHeight: '160px', direction: 'ltr', unicodeBidi: 'embed' }}
+                        dir="ltr"
+                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                        style={{ 
+                            minHeight: '160px', 
+                            direction: 'ltr', 
+                            textAlign: 'left'
+                        }}
                         onInput={(e) => setVisi((e.target as HTMLDivElement).innerHTML)}
                         dangerouslySetInnerHTML={{ __html: visi }}
                     />
@@ -68,14 +73,19 @@ export function VisiMisiTab({ profile, loading, onUpdate }: VisiMisiTabProps) {
                     Misi
                 </label>
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <RichTextToolbar />
+                    <RichTextToolbar editorRef={misiEditorRef} />
                     {/* Content Editor */}
                     <div
                         ref={misiEditorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        className="w-full h-40 p-4 border-none outline-none resize-none overflow-auto text-left"
-                        style={{ minHeight: '160px', direction: 'ltr', unicodeBidi: 'embed' }}
+                        dir="ltr"
+                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                        style={{ 
+                            minHeight: '160px', 
+                            direction: 'ltr', 
+                            textAlign: 'left'
+                        }}
                         onInput={(e) => setMisi((e.target as HTMLDivElement).innerHTML)}
                         dangerouslySetInnerHTML={{ __html: misi }}
                     />

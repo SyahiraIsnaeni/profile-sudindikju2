@@ -213,9 +213,9 @@ export const UsersTab = () => {
                 <h2 className="text-lg font-bold text-gray-900">Daftar Pengguna</h2>
                 <button
                     onClick={openForm}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition font-medium"
+                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded-lg transition font-medium text-sm"
                 >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4" />
                     Tambah Pengguna
                 </button>
             </div>
@@ -225,20 +225,20 @@ export const UsersTab = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-full">
                         <thead>
-                            <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b">
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                            <tr className="bg-gradient-to-r from-blue-800 to-blue-900 border-b">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Nama
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Email
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Role
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">
                                     Aksi
                                 </th>
                             </tr>
@@ -274,7 +274,7 @@ export const UsersTab = () => {
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
                                                     onClick={() => handleEditUser(user)}
-                                                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition font-medium text-xs"
+                                                    className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg transition font-medium text-xs"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                     Edit

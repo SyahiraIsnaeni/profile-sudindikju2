@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useMasterData } from '@/presentation/composables/useMasterData';
 import { useRoleManagement } from '@/presentation/composables/useRoleManagement';
+import { useModal } from '@/presentation/composables/useModal';
 import { Pagination } from '@/presentation/components/shared/Pagination';
 import { RoleFormModal } from '@/presentation/components/masterdata/RoleFormModal';
 import { RolePermissionsModal } from '@/presentation/components/masterdata/RolePermissionsModal';
+import { ConfirmationModal } from '@/presentation/components/shared/ConfirmationModal';
 import { Edit2, Plus, Trash2 } from 'lucide-react';
 
 interface RoleWithPermissions {
@@ -51,8 +53,9 @@ export const RolesTab = () => {
     const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
     const [selectedRoleForPermissions, setSelectedRoleForPermissions] =
         useState<RoleWithPermissions | null>(null);
+    const { isOpen: isDeleteConfirmOpen, open: openDeleteConfirm, close: closeDeleteConfirm } = useModal();
+    const [roleToDelete, setRoleToDelete] = useState<RoleWithPermissions | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     // Handle add role button
     const handleAddRole = () => {
@@ -102,17 +105,25 @@ export const RolesTab = () => {
         }
     };
 
-    // Handle delete role
-    const handleDeleteRole = async (roleId: number, roleName: string) => {
-        if (!confirm(`Apakah Anda yakin ingin menghapus role "${roleName}"?`)) {
-            return;
-        }
+    // Handle open delete confirmation
+    const handleOpenDeleteConfirm = (role: RoleWithPermissions) => {
+        setRoleToDelete(role);
+        openDeleteConfirm();
+    };
+
+    // Handle close delete confirmation
+    const handleCloseDeleteConfirm = () => {
+        setRoleToDelete(null);
+        closeDeleteConfirm();
+    };
+
+    // Handle confirm delete role
+    const handleConfirmDelete = async () => {
+        if (!roleToDelete) return;
 
         setIsDeleting(true);
-        setDeleteError(null);
-
         try {
-            const response = await fetch(`/api/master-data/roles/${roleId}`, {
+            const response = await fetch(`/api/master-data/roles/${roleToDelete.id}`, {
                 method: 'DELETE',
             });
 
@@ -123,9 +134,10 @@ export const RolesTab = () => {
 
             // Refresh roles data tanpa reload halaman
             await refetchRoles();
+            handleCloseDeleteConfirm();
         } catch (error: any) {
-            setDeleteError(error.message);
             console.error('Error deleting role:', error);
+            throw error;
         } finally {
             setIsDeleting(false);
         }
@@ -178,35 +190,24 @@ export const RolesTab = () => {
                 </button>
             </div>
 
-            {/* Delete Error Alert */}
-            {deleteError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700 text-sm">{deleteError}</p>
-                    <button
-                        onClick={() => setDeleteError(null)}
-                        className="text-red-600 text-sm font-medium mt-2 hover:text-red-700"
-                    >
-                        Tutup
-                    </button>
-                </div>
-            )}
+
 
             {/* Table */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-full">
                         <thead>
-                            <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b">
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                            <tr className="bg-gradient-to-r from-blue-800 to-blue-900 border-b">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Nama Role
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                                     Hak Akses
                                 </th>
-                                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">
                                     Aksi
                                 </th>
                             </tr>
@@ -229,8 +230,8 @@ export const RolesTab = () => {
                                             <td className="px-6 py-4 text-sm">
                                                 <span
                                                     className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${role.status === 1
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-red-100 text-red-800'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-red-100 text-red-800'
                                                         }`}
                                                 >
                                                     {role.status === 1 ? 'Aktif' : 'Tidak Aktif'}
@@ -256,13 +257,13 @@ export const RolesTab = () => {
                                                 <div className="flex justify-center gap-2">
                                                     <button
                                                         onClick={() => handleEditRole(roleWithPerms)}
-                                                        className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 py-2 rounded-lg transition font-medium text-xs"
+                                                        className="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white px-3 py-2 rounded-lg transition font-medium text-xs"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                         Edit
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteRole(role.id, role.name)}
+                                                        onClick={() => handleOpenDeleteConfirm(roleWithPerms)}
                                                         disabled={isDeleting}
                                                         className="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg transition font-medium text-xs"
                                                     >
@@ -310,7 +311,7 @@ export const RolesTab = () => {
                 }}
                 permissions={permissions}
                 onSubmit={handleFormSubmit}
-                editData={isEditMode ? selectedRole : undefined}
+                editData={isEditMode && selectedRole ? selectedRole : undefined}
             />
 
             {/* Role Permissions Modal */}
@@ -326,6 +327,19 @@ export const RolesTab = () => {
                     permissions={selectedRoleForPermissions.permissions || []}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={isDeleteConfirmOpen}
+                title="Hapus Role"
+                message={`Apakah Anda yakin ingin menghapus role "${roleToDelete?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCloseDeleteConfirm}
+                confirmText="Hapus"
+                cancelText="Batal"
+                isDangerous={true}
+                isLoading={isDeleting}
+            />
         </div>
     );
 };

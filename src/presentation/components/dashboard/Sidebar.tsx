@@ -4,12 +4,20 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useLogin } from '@/presentation/composables/useLogin';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, Home, Menu, X, AlignLeft } from 'lucide-react';
-import { Database } from 'lucide-react';
+import { LogOut, Home, Menu, X, AlignLeft, ChevronDown } from 'lucide-react';
+import { Database, Building2, Handshake, Phone, Briefcase, FileText, HelpCircle } from 'lucide-react';
+
+interface MenuItem {
+    label: string;
+    icon: React.ComponentType<any>;
+    href?: string;
+    submenu?: MenuItem[];
+}
 
 export const Sidebar = () => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
     const { logout, getCurrentUser } = useLogin();
     const router = useRouter();
     const pathname = usePathname();
@@ -20,9 +28,31 @@ export const Sidebar = () => {
         router.push('/login');
     };
 
-    const menuItems = [
+    const menuItems: MenuItem[] = [
         { label: 'Dashboard', icon: Home, href: '/dashboard' },
         { label: 'Master Data', icon: Database, href: '/dashboard/master-data' },
+        { label: 'Profil Instansi', icon: Building2, href: '/dashboard/profil-instansi' },
+        { label: 'Komitmen Pelayanan', icon: Handshake, href: '/dashboard/komitmen-pelayanan' },
+        { label: 'Informasi Kontak', icon: Phone, href: '/dashboard/informasi-kontak' },
+        { label: 'Layanan Publik', icon: Briefcase, href: '/dashboard/layanan-publik' },
+        { label: 'Aplikasi', icon: Briefcase, href: '/dashboard/aplikasi' },
+        {
+            label: 'Media dan Publikasi',
+            icon: FileText,
+            submenu: [
+                { label: 'Artikel', icon: FileText, href: '/dashboard/media/artikel' },
+                { label: 'Pengumuman', icon: FileText, href: '/dashboard/media/pengumuman' },
+                { label: 'Galeri Kegiatan', icon: FileText, href: '/dashboard/media/galeri-kegiatan' },
+            ],
+        },
+        {
+            label: 'Pertanyaan & Pengaduan',
+            icon: HelpCircle,
+            submenu: [
+                { label: 'Pertanyaan', icon: HelpCircle, href: '/dashboard/pertanyaan-pengaduan/pertanyaan' },
+                { label: 'Pengaduan', icon: HelpCircle, href: '/dashboard/pertanyaan-pengaduan/pengaduan' },
+            ],
+        },
     ];
 
     const toggleMobileSidebar = () => {
@@ -33,8 +63,12 @@ export const Sidebar = () => {
         setIsCollapsed(!isCollapsed);
     };
 
-    const isActive = (href: string) => {
-        return pathname === href;
+    const toggleSubmenu = (label: string) => {
+        setExpandedMenu(expandedMenu === label ? null : label);
+    };
+
+    const isActive = (href?: string) => {
+        return href && pathname === href;
     };
 
     return (
@@ -95,23 +129,72 @@ export const Sidebar = () => {
                 </div>
 
                 {/* Navigation - SCROLLABLE */}
-                <nav className="flex-1 px-3 lg:px-4 py-6 space-y-2 overflow-y-auto overflow-x-hidden">
+                <nav className="flex-1 px-3 lg:px-4 py-6 space-y-1 overflow-y-auto overflow-x-hidden">
                     {menuItems.map((item) => (
-                        <a
-                            key={item.label}
-                            href={item.href}
-                            className={`flex items-center px-4 py-3 rounded-lg transition text-sm font-medium ${
-                                isActive(item.href)
-                                    ? 'bg-blue-800 border-l-4 border-white text-white'
-                                    : 'hover:bg-blue-800 text-blue-100'
-                            } ${isCollapsed ? 'lg:justify-center lg:px-3' : ''}`}
-                            onClick={() => setIsMobileOpen(false)}
-                            title={isCollapsed ? item.label : ''}
-                        >
-                            <item.icon className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="hidden lg:inline ml-3">{item.label}</span>}
-                            <span className="lg:hidden ml-3">{item.label}</span>
-                        </a>
+                        <div key={item.label}>
+                            {item.submenu ? (
+                                // Menu dengan Submenu
+                                <div>
+                                    <button
+                                        onClick={() => {
+                                            toggleSubmenu(item.label);
+                                            if (isMobileOpen) setIsMobileOpen(false);
+                                        }}
+                                        className={`w-full flex items-center px-4 py-3 rounded-lg transition text-sm font-medium ${
+                                            expandedMenu === item.label
+                                                ? 'bg-blue-800 border-l-4 border-white text-white'
+                                                : 'hover:bg-blue-800 text-blue-100'
+                                        } ${isCollapsed ? 'lg:justify-center lg:px-3' : ''}`}
+                                        title={isCollapsed ? item.label : ''}
+                                    >
+                                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                                        {!isCollapsed && <span className="hidden lg:inline ml-3 flex-1 text-left">{item.label}</span>}
+                                        <span className="lg:hidden ml-3">{item.label}</span>
+                                        {!isCollapsed && (
+                                            <ChevronDown className={`w-4 h-4 flex-shrink-0 hidden lg:block transition-transform ${
+                                                expandedMenu === item.label ? 'rotate-180' : ''
+                                            }`} />
+                                        )}
+                                    </button>
+                                    {/* Submenu */}
+                                    {expandedMenu === item.label && !isCollapsed && (
+                                        <div className="mt-1 space-y-1 ml-4 border-l-2 border-blue-700 pl-0">
+                                            {item.submenu.map((subitem) => (
+                                                <a
+                                                    key={subitem.label}
+                                                    href={subitem.href}
+                                                    className={`flex items-center px-4 py-2 rounded-lg transition text-sm ${
+                                                        isActive(subitem.href)
+                                                            ? 'bg-blue-700 text-white'
+                                                            : 'hover:bg-blue-700 text-blue-100'
+                                                    }`}
+                                                    onClick={() => setIsMobileOpen(false)}
+                                                >
+                                                    <subitem.icon className="w-4 h-4 flex-shrink-0" />
+                                                    <span className="ml-3">{subitem.label}</span>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                // Menu biasa tanpa submenu
+                                <a
+                                    href={item.href}
+                                    className={`flex items-center px-4 py-3 rounded-lg transition text-sm font-medium ${
+                                        isActive(item.href)
+                                            ? 'bg-blue-800 border-l-4 border-white text-white'
+                                            : 'hover:bg-blue-800 text-blue-100'
+                                    } ${isCollapsed ? 'lg:justify-center lg:px-3' : ''}`}
+                                    onClick={() => setIsMobileOpen(false)}
+                                    title={isCollapsed ? item.label : ''}
+                                >
+                                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                                    {!isCollapsed && <span className="hidden lg:inline ml-3">{item.label}</span>}
+                                    <span className="lg:hidden ml-3">{item.label}</span>
+                                </a>
+                            )}
+                        </div>
                     ))}
                 </nav>
 

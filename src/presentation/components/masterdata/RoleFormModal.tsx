@@ -333,7 +333,7 @@ export const RoleFormModal = ({
         }
       `}</style>
 
-      <div className="backdrop-animate fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="backdrop-animate fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
         <div
           ref={modalRef}
           className="modal-animate bg-white rounded-lg shadow-2xl flex flex-col border-l-4 border-blue-600"

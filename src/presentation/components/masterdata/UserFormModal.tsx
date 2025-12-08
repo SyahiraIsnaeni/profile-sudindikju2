@@ -17,9 +17,13 @@ export interface UserFormData {
     status: number;
 }
 
-interface User extends UserFormData {
+interface User {
     id: number;
+    name: string;
     email: string;
+    password?: string;
+    role_id?: number | null;
+    status: number;
     created_at?: Date;
     updated_at?: Date;
 }

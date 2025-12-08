@@ -123,7 +123,7 @@ export const RolePermissionsModal = ({
         }
       `}</style>
 
-            <div className="backdrop-animate fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="backdrop-animate fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
                 <div className="modal-animate bg-white rounded-lg shadow-2xl flex flex-col border-l-4 border-blue-600 max-w-3xl w-full mx-4 max-h-[80vh]">
                     {/* Title Bar */}
                     <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex items-center justify-between">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useLogin } from '@/presentation/composables/useLogin';
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,10 +18,15 @@ export const Sidebar = () => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+    const [isHydrated, setIsHydrated] = useState(false);
     const { logout, getCurrentUser } = useLogin();
     const router = useRouter();
     const pathname = usePathname();
-    const user = getCurrentUser();
+    const user = isHydrated ? getCurrentUser() : null;
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
 
     const handleLogout = () => {
         logout();

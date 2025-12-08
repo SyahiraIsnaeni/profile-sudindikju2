@@ -1,39 +1,40 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
-export async function seedPermission() {
+export async function seedPermission(prisma: PrismaClient) {
   try {
-    console.log('📝 Seeding permissions table...');
+    console.log('📝 Seeding permissions...');
 
     const permissions = [
-      { name: 'create_user' },
-      { name: 'edit_user' },
-      { name: 'delete_user' },
-      { name: 'view_user' },
-      { name: 'create_role' },
-      { name: 'edit_role' },
-      { name: 'delete_role' },
-      { name: 'view_role' },
+      // Master Data menu
+      { name: 'Master Data', detail: 'view_master_data' },
+      { name: 'Master Data', detail: 'create_master_data' },
+      { name: 'Master Data', detail: 'edit_master_data' },
+      { name: 'Master Data', detail: 'delete_master_data' },
+
+      // Profile menu
+      { name: 'Profile', detail: 'view_profile' },
+      { name: 'Profile', detail: 'edit_profile' },
+      { name: 'Profile', detail: 'create_profile' },
+      { name: 'Profile', detail: 'delete_profile' },
+
+      // Dashboard menu
+      { name: 'Dashboard', detail: 'view_dashboard' },
     ];
 
-    for (const permission of permissions) {
-      const created = await prisma.permission.upsert({
-        where: { name: permission.name },
-        update: {},
-        create: {
-          name: permission.name,
-        },
-      });
+    // Delete existing permissions and related role_permissions
+    await prisma.rolePermission.deleteMany({});
+    await prisma.permission.deleteMany({});
 
-      console.log(`  ✓ Created permission: ${created.name}`);
+    // Create permissions
+    for (const perm of permissions) {
+      await prisma.permission.create({
+        data: perm,
+      });
     }
 
-    console.log(`📊 Total permissions seeded: ${permissions.length}`);
+    console.log('✅ Permissions seeded successfully!');
   } catch (error) {
     console.error('❌ Error seeding permissions:', error);
     throw error;
-  } finally {
-    await prisma.$disconnect();
   }
 }

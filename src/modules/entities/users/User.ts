@@ -5,6 +5,11 @@ export interface User {
   password: string;
   token_oauth?: string | null;
   role_id?: number | null;
+  role?: {
+    id: number;
+    name: string;
+  } | null;
+  status: number;
   created_at: Date;
   updated_at: Date;
   deleted_at?: Date | null;
@@ -15,4 +20,11 @@ export interface UserResponse {
   name: string;
   email: string;
   role_id?: number | null;
+  role?: {
+    id: number;
+    name: string;
+  } | null;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
 }

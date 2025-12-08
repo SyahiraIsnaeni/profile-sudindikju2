@@ -22,12 +22,14 @@ model Role {
 
 model Permission {
   id        Int     @id @default(autoincrement())
-  name      String  @unique
+  name      String  @db.VarChar(255)
+  detail    String  @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   rolePermissions RolePermission[]
 
+  @@unique([name, detail])
   @@map("permissions")
 }
 
@@ -58,4 +60,22 @@ model User {
   role      Role?   @relation("UserRoles", fields: [role_id], references: [id], onDelete: SetNull)
 
   @@map("users")
+}
+
+model Profile {
+  id              Int       @id @default(autoincrement())
+  description     String?   @db.Text
+  vision          String?   @db.Text
+  mission         String?   @db.Text
+  motto           String?   @db.VarChar(255)
+  structure_org   String?   @db.VarChar(255)
+  maklumat        String?   @db.VarChar(255)
+  task_org        String?   @db.Text
+  function_org    String?   @db.Text
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  deleted_at      DateTime?
+
+  @@index([deleted_at])
+  @@map("profiles")
 }

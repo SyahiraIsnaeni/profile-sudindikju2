@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
-export async function seedRole() {
+export async function seedRole(prisma: PrismaClient) {
   try {
     console.log('📝 Seeding roles table...');
 
@@ -31,7 +29,5 @@ export async function seedRole() {
   } catch (error) {
     console.error('❌ Error seeding roles:', error);
     throw error;
-  } finally {
-    await prisma.$disconnect();
   }
 }

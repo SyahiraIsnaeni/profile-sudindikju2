@@ -1,17 +1,25 @@
 import { PrismaClient } from '@prisma/client';
 import bcryptjs from 'bcryptjs';
 
-const prisma = new PrismaClient();
-
-export async function seedUser() {
+export async function seedUser(prisma: PrismaClient) {
   try {
     console.log('📝 Seeding users table...');
+
+    // Get admin role dari database
+    const adminRole = await prisma.role.findUnique({
+      where: { name: 'admin' },
+    });
+
+    if (!adminRole) {
+      throw new Error('Admin role not found. Please run role seeder first.');
+    }
 
     const users = [
       {
         email: 'admin@gmail.com',
         password: 'admin123456',
         name: 'Admin Sudin',
+        role_id: adminRole.id,
         status: 1,
       },
     ];
@@ -26,6 +34,8 @@ export async function seedUser() {
           email: user.email,
           password: hashedPassword,
           name: user.name,
+          role_id: user.role_id,
+          status: user.status,
         },
       });
 
@@ -38,18 +48,3 @@ export async function seedUser() {
     throw error;
   }
 }
-
-// Main function - untuk direct execution
-async function main() {
-  try {
-    await seedUser();
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-// Run jika file dijalankan langsung
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});

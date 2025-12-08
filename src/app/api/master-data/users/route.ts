@@ -1,51 +1,27 @@
-import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import { UserController } from '@/modules/controllers/users/UserController';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const search = searchParams.get('search') || undefined;
+    const status = searchParams.get('status')
+      ? parseInt(searchParams.get('status')!)
+      : undefined;
 
-    const total = await prisma.user.count({
-      where: { deleted_at: null },
+    const result = await UserController.getAll({
+      page,
+      pageSize,
+      search,
+      status,
     });
 
-    const users = await prisma.user.findMany({
-      where: { deleted_at: null },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        status: true,
-      },
-      orderBy: { created_at: 'desc' },
-      take: pageSize,
-      skip: offset,
-    });
-
-    const totalPages = Math.ceil(total / pageSize);
-
-    return NextResponse.json({
-      success: true,
-      data: users,
-      meta: {
-        total,
-        page,
-        pageSize,
-        totalPages,
-      },
-    });
+    return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
-    console.error('Error fetching users:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
+      { error: error.message || 'Gagal mengambil data pengguna' },
       { status: 500 }
     );
   }

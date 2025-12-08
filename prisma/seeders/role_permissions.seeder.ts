@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
-export async function seedRolePermissions() {
+export async function seedRolePermissions(prisma: PrismaClient) {
   try {
     console.log('📝 Seeding role permissions...');
 
@@ -35,12 +33,11 @@ export async function seedRolePermissions() {
       console.log(`  ✓ Assigned ${allPermissions.length} permissions to admin`);
     }
 
-    // Kasudin (Kepala Sudin): Create, Edit, Delete, View all
+    // Kasudin (Kepala Sudin): View, Create, Edit Master Data & Dashboard
     if (kasudinRole) {
       const kasudinPermissions = allPermissions.filter((p) =>
-        [
-          'view_user', 'view_role',
-        ].includes(p.name)
+        (p.name === 'Master Data' && ['view_master_data'].includes(p.detail)) ||
+        (p.name === 'Dashboard' && p.detail === 'view_dashboard')
       );
 
       for (const permission of kasudinPermissions) {
@@ -61,12 +58,11 @@ export async function seedRolePermissions() {
       console.log(`  ✓ Assigned ${kasudinPermissions.length} permissions to kasudin`);
     }
 
-    // Kasubbag (Kepala Sub Bagian): Create, Edit, View
+    // Kasubbag (Kepala Sub Bagian): View, Create, Edit Master Data
     if (kasubbagRole) {
       const kasubbagPermissions = allPermissions.filter((p) =>
-        [
-          'view_user', 'view_role',
-        ].includes(p.name)
+        (p.name === 'Master Data' && ['view_master_data'].includes(p.detail)) ||
+        (p.name === 'Dashboard' && p.detail === 'view_dashboard')
       );
 
       for (const permission of kasubbagPermissions) {
@@ -87,12 +83,11 @@ export async function seedRolePermissions() {
       console.log(`  ✓ Assigned ${kasubbagPermissions.length} permissions to kasubbag`);
     }
 
-    // Kasi (Kepala Seksi): Create, View
+    // Kasi (Kepala Seksi): View Master Data & Dashboard only
     if (kasiRole) {
       const kasiPermissions = allPermissions.filter((p) =>
-        [
-          'view_user', 'view_role',
-        ].includes(p.name)
+        (p.name === 'Master Data' && p.detail === 'view_master_data') ||
+        (p.name === 'Dashboard' && p.detail === 'view_dashboard')
       );
 
       for (const permission of kasiPermissions) {
@@ -113,10 +108,10 @@ export async function seedRolePermissions() {
       console.log(`  ✓ Assigned ${kasiPermissions.length} permissions to kasi`);
     }
 
-    // Staf: View only
+    // Staf: View Dashboard only
     if (stafRole) {
       const stafPermissions = allPermissions.filter((p) =>
-        ['view_user', 'view_role',].includes(p.name)
+        p.name === 'Dashboard' && p.detail === 'view_dashboard'
       );
 
       for (const permission of stafPermissions) {
@@ -141,7 +136,5 @@ export async function seedRolePermissions() {
   } catch (error) {
     console.error('❌ Error seeding role permissions:', error);
     throw error;
-  } finally {
-    await prisma.$disconnect();
   }
 }

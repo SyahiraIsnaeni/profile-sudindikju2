@@ -17,9 +17,10 @@ interface User {
 }
 
 interface LoginResponse {
-  success: boolean;
-  user: User;
-  message: string;
+  success?: boolean;
+  user?: User;
+  message?: string;
+  error?: string;
 }
 
 export const useLogin = () => {
@@ -62,6 +63,10 @@ export const useLogin = () => {
 
       if (!response.ok) {
         throw new Error(data.error || 'Login gagal');
+      }
+
+      if (!data.user) {
+        throw new Error('User data tidak ditemukan');
       }
 
       // Simpan user data di localStorage

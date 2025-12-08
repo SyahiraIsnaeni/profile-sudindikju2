@@ -1,47 +1,27 @@
-import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import { RoleController } from '@/modules/controllers/roles/RoleController';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const search = searchParams.get('search') || undefined;
+    const status = searchParams.get('status')
+      ? parseInt(searchParams.get('status')!)
+      : undefined;
 
-    const total = await prisma.role.count();
-
-    const roles = await prisma.role.findMany({
-      select: {
-        id: true,
-        name: true,
-        status: true,
-      },
-      orderBy: { name: 'asc' },
-      take: pageSize,
-      skip: offset,
+    const result = await RoleController.getAll({
+      page,
+      pageSize,
+      search,
+      status,
     });
 
-    const totalPages = Math.ceil(total / pageSize);
-
-    return NextResponse.json({
-      success: true,
-      data: roles,
-      meta: {
-        total,
-        page,
-        pageSize,
-        totalPages,
-      },
-    });
+    return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
-    console.error('Error fetching roles:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
+      { error: error.message || 'Gagal mengambil data role' },
       { status: 500 }
     );
   }

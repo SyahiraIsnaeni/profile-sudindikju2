@@ -114,6 +114,26 @@ export const useMasterData = () => {
         }
     };
 
+    const refetchRoles = async () => {
+        try {
+            setLoading(true);
+            const offset = (rolePage - 1) * pageSize;
+            const res = await fetch(
+                `/api/master-data/roles?page=${rolePage}&pageSize=${pageSize}&offset=${offset}`
+            );
+            if (!res.ok) throw new Error('Failed to fetch roles');
+            const data: PaginatedResponse<Role> = await res.json();
+            setRoles(data.data);
+            setRolesMeta(data.meta);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message);
+            console.error('Error refetching roles:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         users,
         roles,
@@ -128,5 +148,6 @@ export const useMasterData = () => {
         usersMeta,
         rolesMeta,
         refetchUsers,
+        refetchRoles,
     };
 };

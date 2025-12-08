@@ -10,12 +10,12 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
-    <div className="flex min-h-screen bg-gray-50 flex-col lg:flex-row">
+    <div className="flex h-screen bg-gray-50 flex-col lg:flex-row">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col w-full lg:w-auto">
+      <div className="flex-1 flex flex-col w-full lg:w-auto overflow-hidden">
         {/* Navbar */}
         <Navbar />
 
@@ -25,7 +25,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 px-4 md:px-8 py-4 mt-auto">
+        <footer className="bg-white border-t border-gray-200 px-4 md:px-8 py-4 flex-shrink-0">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="text-xs md:text-sm text-gray-600">
               <p>© 2025 Sudin Pendidikan Jakarta Utara Wilayah II. All Rights Reserved.</p>

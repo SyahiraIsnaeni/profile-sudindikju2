@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GetProfileDTO } from '@/modules/dtos/profiles';
 import { Upload, X } from 'lucide-react';
+import { Toast, type ToastType } from '@/presentation/components/shared/Toast';
 
 interface MaklumatOrganisasiTabProps {
   profile: GetProfileDTO | null;
@@ -19,6 +20,18 @@ export function MaklumatOrganisasiTab({
   const [preview, setPreview] = useState<string>(profile?.maklumat || '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('success');
+  const [showToast, setShowToast] = useState(false);
+
+  /**
+   * Sinkronkan preview dengan profile data ketika profile berubah
+   * Ini memastikan gambar tetap tampil saat user pindah tab dan balik lagi
+   */
+  useEffect(() => {
+    setPreview(profile?.maklumat || '');
+    setSelectedFile(null);
+  }, [profile?.maklumat]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,7 +64,9 @@ export function MaklumatOrganisasiTab({
   const handleSave = async () => {
     try {
       if (!selectedFile) {
-        setSaveMessage('Pilih file terlebih dahulu');
+        setToastMessage('Pilih file terlebih dahulu');
+        setToastType('warning');
+        setShowToast(true);
         return;
       }
 
@@ -60,13 +75,15 @@ export function MaklumatOrganisasiTab({
 
       await onUpdate(selectedFile);
 
-      setSaveMessage('Maklumat organisasi berhasil disimpan');
+      setToastMessage('Maklumat organisasi berhasil disimpan');
+      setToastType('success');
+      setShowToast(true);
       setSelectedFile(null);
-      setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
-      setSaveMessage(
-        error instanceof Error ? error.message : 'Gagal menyimpan'
-      );
+      const errorMsg = error instanceof Error ? error.message : 'Gagal menyimpan';
+      setToastMessage(errorMsg);
+      setToastType('error');
+      setShowToast(true);
     } finally {
       setIsSaving(false);
     }
@@ -79,8 +96,17 @@ export function MaklumatOrganisasiTab({
   };
 
   return (
-    <div className="space-y-6">
-      {/* File Upload */}
+    <>
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          duration={3000}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+      <div className="space-y-6">
+        {/* File Upload */}
       <div className="space-y-2">
         <label className="block text-sm font-semibold text-gray-700">
           Upload Gambar Maklumat Organisasi
@@ -126,14 +152,25 @@ export function MaklumatOrganisasiTab({
                 selectedFile
                   ? preview // Show data URL for newly selected file
                   : preview.startsWith('data:')
-                  ? preview // Show existing data URL
-                  : `/api/storage/${preview.replace(/^\/storage\//, '')}` // Serve from API for file paths
+                  ? preview // Show existing data URL (shouldn't happen)
+                  : preview // Direct serve dari public/storage folder
               }
               alt="Preview"
               className="max-w-full max-h-96 mx-auto rounded"
               onError={(e) => {
-                console.error('Failed to load image:', e);
-                (e.target as HTMLImageElement).src = '/placeholder-image.png';
+                const imgElement = e.target as HTMLImageElement;
+                console.error('[MaklumatOrganisasi] Failed to load image at:', imgElement.src);
+                console.error('[MaklumatOrganisasi] Preview path:', preview);
+                
+                // Tampilkan error message
+                imgElement.style.display = 'none';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'p-4 bg-red-50 border border-red-200 rounded text-red-700 text-center';
+                errorDiv.textContent = '❌ Gagal memuat gambar. File mungkin tidak ada atau telah dihapus.';
+                imgElement.parentElement?.appendChild(errorDiv);
+              }}
+              onLoad={() => {
+                console.log('[MaklumatOrganisasi] Image loaded successfully from:', preview);
               }}
             />
           </div>
@@ -160,19 +197,8 @@ export function MaklumatOrganisasiTab({
             Hapus
           </button>
         </div>
-
-        {saveMessage && (
-          <p
-            className={`text-sm ${
-              saveMessage.includes('berhasil')
-                ? 'text-green-600'
-                : 'text-red-600'
-            }`}
-          >
-            {saveMessage}
-          </p>
-        )}
       </div>
-    </div>
-  );
-}
+      </div>
+      </>
+      );
+      }

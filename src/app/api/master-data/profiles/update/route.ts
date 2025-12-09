@@ -188,15 +188,20 @@ export async function PUT(request: NextRequest) {
             { status: 400 }
         );
     } catch (error) {
-        console.error('PUT /api/master-data/profiles/update error:', error);
+        console.error('\n[API ERROR] PUT /api/master-data/profiles/update');
+        console.error('[API ERROR] Error object:', error);
         if (error instanceof Error) {
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
+            console.error('[API ERROR] Error message:', error.message);
+            console.error('[API ERROR] Error stack:', error.stack);
         }
+        console.error('[API ERROR] End\n');
+
+        const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat memproses request';
+
         return NextResponse.json(
             {
                 success: false,
-                message: error instanceof Error ? error.message : 'Terjadi kesalahan',
+                message: errorMessage,
                 data: null,
             },
             { status: 500 }

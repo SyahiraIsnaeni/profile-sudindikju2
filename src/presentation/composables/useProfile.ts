@@ -152,6 +152,15 @@ export function useProfile(): UseProfileReturn {
             });
 
             console.log('[useProfile] API Response status:', response.status);
+            console.log('[useProfile] API Response headers:', response.headers.get('content-type'));
+
+            const contentType = response.headers.get('content-type') || '';
+            
+            if (!contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                console.error('[useProfile] Response is not JSON:', textResponse.substring(0, 200));
+                throw new Error(`API returned non-JSON response (${response.status}): ${textResponse.substring(0, 100)}`);
+            }
 
             const result = await response.json();
 
@@ -166,7 +175,7 @@ export function useProfile(): UseProfileReturn {
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
             setError(errorMessage);
-            console.error('updateStrukturOrganisasi error:', err);
+            console.error('[useProfile] updateStrukturOrganisasi error:', err);
             throw err;
         } finally {
             setLoading(false);
@@ -196,6 +205,15 @@ export function useProfile(): UseProfileReturn {
             });
 
             console.log('[useProfile] API Response status:', response.status);
+            console.log('[useProfile] API Response headers:', response.headers.get('content-type'));
+
+            const contentType = response.headers.get('content-type') || '';
+            
+            if (!contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                console.error('[useProfile] Response is not JSON:', textResponse.substring(0, 200));
+                throw new Error(`API returned non-JSON response (${response.status}): ${textResponse.substring(0, 100)}`);
+            }
 
             const result = await response.json();
 
@@ -210,7 +228,7 @@ export function useProfile(): UseProfileReturn {
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
             setError(errorMessage);
-            console.error('updateMaklumatOrganisasi error:', err);
+            console.error('[useProfile] updateMaklumatOrganisasi error:', err);
             throw err;
         } finally {
             setLoading(false);

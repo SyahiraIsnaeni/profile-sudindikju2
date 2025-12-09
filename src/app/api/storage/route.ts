@@ -29,12 +29,24 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Build file path
-        const filePath = join(process.cwd(), 'public', 'storage', pathname);
-        const storagePath = join(process.cwd(), 'public', 'storage');
+        // Build file path with proper path separator
+        const baseDir = process.cwd();
+        const filePath = join(baseDir, 'public', 'storage', pathname);
+        const storagePath = join(baseDir, 'public', 'storage');
 
-        // Verify file is within storage directory
-        if (!filePath.startsWith(storagePath)) {
+        console.log('[Storage API] Request pathname:', pathname);
+        console.log('[Storage API] Base dir:', baseDir);
+        console.log('[Storage API] Full file path:', filePath);
+        console.log('[Storage API] Storage path:', storagePath);
+
+        // Verify file is within storage directory (normalize paths for comparison)
+        const normalizedFilePath = filePath.replace(/\\/g, '/').toLowerCase();
+        const normalizedStoragePath = storagePath.replace(/\\/g, '/').toLowerCase();
+        
+        if (!normalizedFilePath.startsWith(normalizedStoragePath)) {
+            console.warn('[Storage API] Security check failed');
+            console.warn('[Storage API] Normalized file path:', normalizedFilePath);
+            console.warn('[Storage API] Normalized storage path:', normalizedStoragePath);
             return NextResponse.json(
                 { success: false, message: 'Access denied' },
                 { status: 403 }
@@ -42,29 +54,39 @@ export async function GET(request: NextRequest) {
         }
 
         // Check if file exists
+        console.log('[Storage API] Checking file exists:', existsSync(filePath));
         if (!existsSync(filePath)) {
+            console.error('[Storage API] File not found at:', filePath);
             return NextResponse.json(
                 { success: false, message: 'File not found' },
                 { status: 404 }
             );
         }
+        
+        console.log('[Storage API] File found, reading...');
 
         // Read file
+        console.log('[Storage API] Reading file buffer...');
         const fileBuffer = await readFile(filePath);
+        console.log('[Storage API] File buffer size:', fileBuffer.length);
 
         // Determine content type
         let contentType = 'application/octet-stream';
-        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+        const lowerPath = filePath.toLowerCase();
+        if (lowerPath.endsWith('.jpg') || lowerPath.endsWith('.jpeg')) {
             contentType = 'image/jpeg';
-        } else if (filePath.endsWith('.png')) {
+        } else if (lowerPath.endsWith('.png')) {
             contentType = 'image/png';
-        } else if (filePath.endsWith('.gif')) {
+        } else if (lowerPath.endsWith('.gif')) {
             contentType = 'image/gif';
-        } else if (filePath.endsWith('.webp')) {
+        } else if (lowerPath.endsWith('.webp')) {
             contentType = 'image/webp';
-        } else if (filePath.endsWith('.pdf')) {
+        } else if (lowerPath.endsWith('.pdf')) {
             contentType = 'application/pdf';
         }
+
+        console.log('[Storage API] Content-Type:', contentType);
+        console.log('[Storage API] Returning file successfully');
 
         return new NextResponse(fileBuffer, {
             headers: {

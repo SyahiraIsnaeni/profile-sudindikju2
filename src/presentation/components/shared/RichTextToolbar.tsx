@@ -13,7 +13,7 @@ import {
     Highlighter,
     Palette,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface RichTextToolbarProps {
     onCommand?: (command: string, value?: string) => void;
@@ -25,11 +25,6 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
     const [showHighlightPicker, setShowHighlightPicker] = useState(false);
     const [textColor, setTextColor] = useState('#000000');
     const [highlightColor, setHighlightColor] = useState('#FFFF00');
-    const [activeBold, setActiveBold] = useState(false);
-    const [activeItalic, setActiveItalic] = useState(false);
-    const [activeUnderline, setActiveUnderline] = useState(false);
-    const [activeList, setActiveList] = useState(false);
-    const [activeOrderedList, setActiveOrderedList] = useState(false);
 
     const textColors = [
         { name: 'Hitam', value: '#000000' },
@@ -52,51 +47,73 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
         { name: 'Cyan', value: '#00FFFF' },
     ];
 
-    // Update active state ketika selection berubah
-    useEffect(() => {
-        const updateActiveState = () => {
-            setActiveBold(document.queryCommandState('bold'));
-            setActiveItalic(document.queryCommandState('italic'));
-            setActiveUnderline(document.queryCommandState('underline'));
-            setActiveList(document.queryCommandState('insertUnorderedList'));
-            setActiveOrderedList(document.queryCommandState('insertOrderedList'));
-        };
+    /**
+     * Execute command dengan proper selection handling
+     * Save selection sebelum button loses focus, restore saat execute
+     * Ini memastikan command bekerja dengan baik bahkan setelah button click
+     */
+    const executeCommand = (command: string, value?: string) => {
+        // Focus editor terlebih dahulu
+        if (editorRef?.current) {
+            editorRef.current.focus();
+        }
 
-        const handleMouseUp = () => updateActiveState();
-        const handleKeyUp = () => updateActiveState();
+        // Simpan selection saat ini
+        const selection = window.getSelection();
+        let savedRange = null;
 
-        document.addEventListener('mouseup', handleMouseUp);
-        document.addEventListener('keyup', handleKeyUp);
+        if (selection && selection.rangeCount > 0) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+        }
 
-        return () => {
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('keyup', handleKeyUp);
-        };
-    }, []);
+        // Jika tidak ada selection dan command memerlukan selection, buat range di akhir editor
+        if (!savedRange && editorRef?.current && !['insertOrderedList', 'insertUnorderedList'].includes(command)) {
+            savedRange = document.createRange();
+            savedRange.selectNodeContents(editorRef.current);
+            savedRange.collapse(false); // Collapse ke akhir
+        }
+
+        // Restore selection jika ada
+        if (savedRange && selection) {
+            try {
+                selection.removeAllRanges();
+                selection.addRange(savedRange);
+            } catch (e) {
+                console.warn('[RichTextToolbar] Failed to restore selection:', e);
+            }
+        }
+
+        // Execute command
+        try {
+            document.execCommand(command, false, value);
+        } catch (e) {
+            console.error(`[RichTextToolbar] Command '${command}' failed:`, e);
+        }
+    };
 
     const handleTextColor = (color: string) => {
-        document.execCommand('foreColor', false, color);
-        setTextColor(color);
         setShowColorPicker(false);
+        setTextColor(color);
+        executeCommand('foreColor', color);
     };
 
     const handleHighlightColor = (color: string) => {
-        document.execCommand('backColor', false, color);
-        setHighlightColor(color);
         setShowHighlightPicker(false);
+        setHighlightColor(color);
+        executeCommand('backColor', color);
     };
 
     const handleFontSize = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const size = e.target.value;
         if (size) {
-            document.execCommand('fontSize', false, size);
+            executeCommand('fontSize', size);
         }
     };
 
     const handleFontFamily = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const font = e.target.value;
         if (font) {
-            document.execCommand('fontName', false, font);
+            executeCommand('fontName', font);
         }
     };
 
@@ -104,34 +121,22 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
         <div className="flex items-center gap-2 bg-gray-100 p-3 border-b border-gray-300 flex-wrap">
             {/* Bold & Italic & Underline */}
             <button
-                onClick={() => document.execCommand('bold')}
-                className={`p-2 rounded transition ${
-                    activeBold
-                        ? 'bg-blue-500 text-white'
-                        : 'hover:bg-gray-200'
-                }`}
+                onClick={() => executeCommand('bold')}
+                className="p-2 rounded transition hover:bg-gray-200"
                 title="Bold (Ctrl+B)"
             >
                 <Bold size={18} />
             </button>
             <button
-                onClick={() => document.execCommand('italic')}
-                className={`p-2 rounded transition ${
-                    activeItalic
-                        ? 'bg-blue-500 text-white'
-                        : 'hover:bg-gray-200'
-                }`}
+                onClick={() => executeCommand('italic')}
+                className="p-2 rounded transition hover:bg-gray-200"
                 title="Italic (Ctrl+I)"
             >
                 <Italic size={18} />
             </button>
             <button
-                onClick={() => document.execCommand('underline')}
-                className={`p-2 rounded transition ${
-                    activeUnderline
-                        ? 'bg-blue-500 text-white'
-                        : 'hover:bg-gray-200'
-                }`}
+                onClick={() => executeCommand('underline')}
+                className="p-2 rounded transition hover:bg-gray-200"
                 title="Underline (Ctrl+U)"
             >
                 <Underline size={18} />
@@ -141,28 +146,28 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
 
             {/* Text Alignment */}
             <button
-                onClick={() => document.execCommand('justifyLeft')}
+                onClick={() => executeCommand('justifyLeft')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Align Left"
             >
                 <AlignLeft size={18} />
             </button>
             <button
-                onClick={() => document.execCommand('justifyCenter')}
+                onClick={() => executeCommand('justifyCenter')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Align Center"
             >
                 <AlignCenter size={18} />
             </button>
             <button
-                onClick={() => document.execCommand('justifyRight')}
+                onClick={() => executeCommand('justifyRight')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Align Right"
             >
                 <AlignRight size={18} />
             </button>
             <button
-                onClick={() => document.execCommand('justifyFull')}
+                onClick={() => executeCommand('justifyFull')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Justify"
             >
@@ -173,24 +178,16 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
 
             {/* Numbering & Lists */}
             <button
-                onClick={() => document.execCommand('insertOrderedList')}
-                className={`p-2 rounded transition ${
-                    activeOrderedList
-                        ? 'bg-blue-500 text-white'
-                        : 'hover:bg-gray-200'
-                }`}
-                title="Numbered List"
+                onClick={() => executeCommand('insertOrderedList')}
+                className="p-2 rounded transition hover:bg-gray-200"
+                title="Numbered List (1, 2, 3...)"
             >
                 <ListOrdered size={18} />
             </button>
             <button
-                onClick={() => document.execCommand('insertUnorderedList')}
-                className={`p-2 rounded transition ${
-                    activeList
-                        ? 'bg-blue-500 text-white'
-                        : 'hover:bg-gray-200'
-                }`}
-                title="Bullet List"
+                onClick={() => executeCommand('insertUnorderedList')}
+                className="p-2 rounded transition hover:bg-gray-200"
+                title="Bullet List (•)"
             >
                 <List size={18} />
             </button>

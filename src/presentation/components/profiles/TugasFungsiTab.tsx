@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { GetProfileDTO } from '@/modules/dtos/profiles';
 import { RichTextToolbar } from '@/presentation/components/shared/RichTextToolbar';
+import { Toast, type ToastType } from '@/presentation/components/shared/Toast';
 
 interface TugasFungsiTabProps {
     profile: GetProfileDTO | null;
@@ -15,6 +16,9 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
     const [fungsi, setFungsi] = useState(profile?.function_org || '');
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastType, setToastType] = useState<ToastType>('success');
+    const [showToast, setShowToast] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
 
     const tugasEditorRef = useRef<HTMLDivElement>(null);
@@ -41,20 +45,31 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
 
             await onUpdate(tugasContent || undefined, fungsiContent || undefined);
 
-            setSaveMessage('Tugas dan Fungsi berhasil disimpan');
-            setTimeout(() => setSaveMessage(''), 3000);
+            setToastMessage('Tugas dan Fungsi berhasil disimpan');
+            setToastType('success');
+            setShowToast(true);
         } catch (error) {
-            setSaveMessage(
-                error instanceof Error ? error.message : 'Gagal menyimpan'
-            );
+            const errorMsg = error instanceof Error ? error.message : 'Gagal menyimpan';
+            setToastMessage(errorMsg);
+            setToastType('error');
+            setShowToast(true);
         } finally {
             setIsSaving(false);
         }
     };
 
     return (
-        <div className="space-y-6">
-            {/* Tugas */}
+        <>
+            {showToast && (
+                <Toast
+                    message={toastMessage}
+                    type={toastType}
+                    duration={3000}
+                    onClose={() => setShowToast(false)}
+                />
+            )}
+            <div className="space-y-6">
+                {/* Tugas */}
             <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700">
                     Tugas
@@ -111,18 +126,8 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
                 >
                     {isSaving ? 'Menyimpan...' : 'Simpan'}
                 </button>
-
-                {saveMessage && (
-                    <p
-                        className={`text-sm ${saveMessage.includes('berhasil')
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                            }`}
-                    >
-                        {saveMessage}
-                    </p>
-                )}
             </div>
-        </div>
+            </div>
+        </>
     );
 }

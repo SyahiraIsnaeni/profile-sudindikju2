@@ -45,3 +45,7 @@ next-env.d.ts
 .env.local
 .env.*.local
 docker/postgres/data/
+
+# Storage (uploaded files)
+public/storage/
+!public/storage/.gitkeep

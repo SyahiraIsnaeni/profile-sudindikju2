@@ -137,22 +137,32 @@ export function useProfile(): UseProfileReturn {
             setLoading(true);
             setError(null);
 
+            console.log('[useProfile] updateStrukturOrganisasi - Starting upload');
+            console.log('[useProfile] File:', file.name, file.size, file.type);
+
             const formData = new FormData();
             formData.append('type', 'struktur-org');
             formData.append('file', file);
+
+            console.log('[useProfile] FormData created, sending to API...');
 
             const response = await fetch('/api/master-data/profiles/update', {
                 method: 'PUT',
                 body: formData,
             });
 
+            console.log('[useProfile] API Response status:', response.status);
+
             const result = await response.json();
+
+            console.log('[useProfile] API Response:', result);
 
             if (!result.success) {
                 throw new Error(result.message || 'Gagal mengupload struktur organisasi');
             }
 
             setProfile(result.data);
+            console.log('[useProfile] Profile updated successfully');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
             setError(errorMessage);
@@ -171,22 +181,32 @@ export function useProfile(): UseProfileReturn {
             setLoading(true);
             setError(null);
 
+            console.log('[useProfile] updateMaklumatOrganisasi - Starting upload');
+            console.log('[useProfile] File:', file.name, file.size, file.type);
+
             const formData = new FormData();
             formData.append('type', 'maklumat');
             formData.append('file', file);
+
+            console.log('[useProfile] FormData created, sending to API...');
 
             const response = await fetch('/api/master-data/profiles/update', {
                 method: 'PUT',
                 body: formData,
             });
 
+            console.log('[useProfile] API Response status:', response.status);
+
             const result = await response.json();
+
+            console.log('[useProfile] API Response:', result);
 
             if (!result.success) {
                 throw new Error(result.message || 'Gagal mengupload maklumat organisasi');
             }
 
             setProfile(result.data);
+            console.log('[useProfile] Profile updated successfully');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
             setError(errorMessage);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { GetProfileDTO } from '@/modules/dtos/profiles';
 import { RichTextToolbar } from '@/presentation/components/shared/RichTextToolbar';
 
@@ -15,9 +15,21 @@ export function VisiMisiTab({ profile, loading, onUpdate }: VisiMisiTabProps) {
     const [misi, setMisi] = useState(profile?.mission || '');
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const visiEditorRef = useRef<HTMLDivElement>(null);
     const misiEditorRef = useRef<HTMLDivElement>(null);
+
+    // Initialize editor content on mount
+    useEffect(() => {
+        if (visiEditorRef.current && !isInitialized) {
+            visiEditorRef.current.innerHTML = profile?.vision || '';
+        }
+        if (misiEditorRef.current && !isInitialized) {
+            misiEditorRef.current.innerHTML = profile?.mission || '';
+        }
+        setIsInitialized(true);
+    }, [profile, isInitialized]);
 
     const handleSave = async () => {
         try {
@@ -62,7 +74,6 @@ export function VisiMisiTab({ profile, loading, onUpdate }: VisiMisiTabProps) {
                             textAlign: 'left'
                         }}
                         onInput={(e) => setVisi((e.target as HTMLDivElement).innerHTML)}
-                        dangerouslySetInnerHTML={{ __html: visi }}
                     />
                 </div>
             </div>
@@ -87,7 +98,6 @@ export function VisiMisiTab({ profile, loading, onUpdate }: VisiMisiTabProps) {
                             textAlign: 'left'
                         }}
                         onInput={(e) => setMisi((e.target as HTMLDivElement).innerHTML)}
-                        dangerouslySetInnerHTML={{ __html: misi }}
                     />
                 </div>
             </div>

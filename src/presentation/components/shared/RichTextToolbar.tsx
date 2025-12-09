@@ -17,7 +17,7 @@ import { useState, useEffect } from 'react';
 
 interface RichTextToolbarProps {
     onCommand?: (command: string, value?: string) => void;
-    editorRef?: React.RefObject<HTMLDivElement>;
+    editorRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) {

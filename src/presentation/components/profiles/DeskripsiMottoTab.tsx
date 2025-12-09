@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { GetProfileDTO } from '@/modules/dtos/profiles';
 import { RichTextToolbar } from '@/presentation/components/shared/RichTextToolbar';
 
@@ -19,9 +19,21 @@ export function DeskripsiMottoTab({
     const [motto, setMotto] = useState(profile?.motto || '');
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const deskripsiEditorRef = useRef<HTMLDivElement>(null);
     const mottoEditorRef = useRef<HTMLDivElement>(null);
+
+    // Initialize editor content on mount
+    useEffect(() => {
+        if (deskripsiEditorRef.current && !isInitialized) {
+            deskripsiEditorRef.current.innerHTML = profile?.description || '';
+        }
+        if (mottoEditorRef.current && !isInitialized) {
+            mottoEditorRef.current.innerHTML = profile?.motto || '';
+        }
+        setIsInitialized(true);
+    }, [profile, isInitialized]);
 
     const handleSave = async () => {
         try {
@@ -72,7 +84,6 @@ export function DeskripsiMottoTab({
                         onInput={(e) =>
                             setDeskripsi((e.target as HTMLDivElement).innerHTML)
                         }
-                        dangerouslySetInnerHTML={{ __html: deskripsi }}
                     />
                 </div>
             </div>
@@ -99,7 +110,6 @@ export function DeskripsiMottoTab({
                         onInput={(e) =>
                             setMotto((e.target as HTMLDivElement).innerHTML)
                         }
-                        dangerouslySetInnerHTML={{ __html: motto }}
                     />
                 </div>
             </div>

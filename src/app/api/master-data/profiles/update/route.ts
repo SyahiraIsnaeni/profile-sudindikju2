@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ProfileController } from '@/modules/controllers/profiles/ProfileController';
+import { saveFileToStorage, deleteFileFromStorage } from '@/shared/utils/fileStorage';
 
 const controller = new ProfileController();
 
@@ -109,17 +110,12 @@ export async function PUT(request: NextRequest) {
                 );
             }
 
-            // Convert file to base64 (untuk simpan di database)
-            const buffer = await file.arrayBuffer();
-            const base64 = Buffer.from(buffer).toString('base64');
-            const fileData = `data:${file.type};base64,${base64}`;
-
-            let result;
-
+            // Tentukan subfolder berdasarkan tipe
+            let subfolder = '';
             if (type === 'struktur-org') {
-                result = await controller.updateStrukturOrganisasi(id, fileData);
+                subfolder = 'profil-instansi/struktur-organisasi';
             } else if (type === 'maklumat') {
-                result = await controller.updateMaklumatOrganisasi(id, fileData);
+                subfolder = 'profil-instansi/maklumat';
             } else {
                 return NextResponse.json(
                     {
@@ -131,6 +127,48 @@ export async function PUT(request: NextRequest) {
                 );
             }
 
+            // Simpan file ke storage dan dapatkan path
+            console.log('\n=== [API] Starting file upload ===');
+            console.log('[API] Type:', type);
+            console.log('[API] File name:', file.name);
+            console.log('[API] File size:', file.size);
+            console.log('[API] Content-type:', file.type);
+            console.log('[API] Subfolder:', subfolder);
+            
+            let filePath: string;
+            try {
+                console.log('[API] Calling saveFileToStorage...');
+                filePath = await saveFileToStorage(file, subfolder);
+                console.log('[API] File saved successfully. Path:', filePath);
+            } catch (saveError) {
+                console.error('\n[API] ERROR in saveFileToStorage:', saveError);
+                if (saveError instanceof Error) {
+                    console.error('[API] Error message:', saveError.message);
+                    console.error('[API] Error stack:', saveError.stack);
+                }
+                console.error('[API] End error log\n');
+                
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: saveError instanceof Error 
+                            ? saveError.message 
+                            : 'Gagal menyimpan file ke storage',
+                        data: null,
+                    },
+                    { status: 500 }
+                );
+            }
+
+            let result;
+
+            if (type === 'struktur-org') {
+                result = await controller.updateStrukturOrganisasi(id, filePath);
+            } else if (type === 'maklumat') {
+                result = await controller.updateMaklumatOrganisasi(id, filePath);
+            }
+
+            console.log('=== File upload completed successfully ===');
             return NextResponse.json(
                 {
                     success: true,
@@ -151,6 +189,10 @@ export async function PUT(request: NextRequest) {
         );
     } catch (error) {
         console.error('PUT /api/master-data/profiles/update error:', error);
+        if (error instanceof Error) {
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
         return NextResponse.json(
             {
                 success: false,

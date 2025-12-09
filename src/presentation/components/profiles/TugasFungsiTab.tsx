@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { GetProfileDTO } from '@/modules/dtos/profiles';
 import { RichTextToolbar } from '@/presentation/components/shared/RichTextToolbar';
 
@@ -15,9 +15,21 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
     const [fungsi, setFungsi] = useState(profile?.function_org || '');
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const tugasEditorRef = useRef<HTMLDivElement>(null);
     const fungsiEditorRef = useRef<HTMLDivElement>(null);
+
+    // Initialize editor content on mount
+    useEffect(() => {
+        if (tugasEditorRef.current && !isInitialized) {
+            tugasEditorRef.current.innerHTML = profile?.task_org || '';
+        }
+        if (fungsiEditorRef.current && !isInitialized) {
+            fungsiEditorRef.current.innerHTML = profile?.function_org || '';
+        }
+        setIsInitialized(true);
+    }, [profile, isInitialized]);
 
     const handleSave = async () => {
         try {
@@ -62,7 +74,6 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
                             textAlign: 'left'
                         }}
                         onInput={(e) => setTugas((e.target as HTMLDivElement).innerHTML)}
-                        dangerouslySetInnerHTML={{ __html: tugas }}
                     />
                 </div>
             </div>
@@ -87,7 +98,6 @@ export function TugasFungsiTab({ profile, loading, onUpdate }: TugasFungsiTabPro
                             textAlign: 'left'
                         }}
                         onInput={(e) => setFungsi((e.target as HTMLDivElement).innerHTML)}
-                        dangerouslySetInnerHTML={{ __html: fungsi }}
                     />
                 </div>
             </div>

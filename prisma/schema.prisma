@@ -68,8 +68,8 @@ model Profile {
   vision              String?   @db.Text @map("visi")
   mission             String?   @db.Text @map("misi")
   motto               String?   @db.Text
-  structure_org       String?   @db.VarChar(255) @map("struktur_organisasi")
-  maklumat            String?   @db.VarChar(255)
+  structure_org       String?   @db.Text @map("struktur_organisasi")
+  maklumat            String?   @db.Text
   task_org            String?   @db.Text @map("tugas")
   function_org        String?   @db.Text @map("fungsi")
   created_at          DateTime  @default(now())

@@ -122,9 +122,19 @@ export function MaklumatOrganisasiTab({
           </label>
           <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
             <img
-              src={preview}
+              src={
+                selectedFile
+                  ? preview // Show data URL for newly selected file
+                  : preview.startsWith('data:')
+                  ? preview // Show existing data URL
+                  : `/api/storage/${preview.replace(/^\/storage\//, '')}` // Serve from API for file paths
+              }
               alt="Preview"
               className="max-w-full max-h-96 mx-auto rounded"
+              onError={(e) => {
+                console.error('Failed to load image:', e);
+                (e.target as HTMLImageElement).src = '/placeholder-image.png';
+              }}
             />
           </div>
         </div>

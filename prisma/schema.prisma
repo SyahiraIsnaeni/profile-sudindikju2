@@ -77,3 +77,18 @@ model Profile {
 
   @@map("profiles")
 }
+
+model Commitment {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(255)
+  description String? @db.Text
+  file      String? @db.Text
+  icon      String? @db.VarChar(255)
+  sort_order Int?
+  status    Int     @default(1)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@map("commitments")
+}

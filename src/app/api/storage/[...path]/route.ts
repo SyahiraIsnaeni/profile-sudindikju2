@@ -15,12 +15,13 @@ interface Params {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
   try {
-    const pathname = params.path?.join('/') || '';
+    const resolvedParams = await params;
+    const pathname = resolvedParams.path?.join('/') || '';
 
-    console.log('[Storage API] Params:', params);
+    console.log('[Storage API] Params:', resolvedParams);
     console.log('[Storage API] Pathname:', pathname);
 
     if (!pathname) {

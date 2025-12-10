@@ -7,7 +7,7 @@ import { Pagination } from '@/presentation/components/shared/Pagination';
 import { ConfirmationModal } from '@/presentation/components/shared/ConfirmationModal';
 import { Alert } from '@/presentation/components/shared/Alert';
 import { KomitmenFormModalV2, KomitmenFormData } from '@/presentation/components/komitmen/KomitmenFormModalV2';
-import { Edit2, Plus, Trash2, Eye, X, Download } from 'lucide-react';
+import { Edit2, Plus, Trash2, Download } from 'lucide-react';
 
 interface Commitment {
     id: number;
@@ -35,13 +35,11 @@ export const KomitmenPelayananTab = () => {
 
     const { isOpen: isFormOpen, open: openForm, close: closeForm } = useModal();
     const { isOpen: isDeleteConfirmOpen, open: openDeleteConfirm, close: closeDeleteConfirm } = useModal();
-    const { isOpen: isImageModalOpen, open: openImageModal, close: closeImageModal } = useModal();
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [editingCommitment, setEditingCommitment] = useState<Commitment | null>(null);
     const [commitmentToDelete, setCommitmentToDelete] = useState<Commitment | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
     // Handle add or update commitment
     const handleSaveCommitment = async (formData: KomitmenFormData, commitmentId?: number) => {
@@ -65,12 +63,17 @@ export const KomitmenPelayananTab = () => {
             form.append('sort_order', (formData.sort_order || '').toString());
             form.append('status', formData.status.toString());
 
-            if (formData.file) {
+            // Handle multiple files
+            if (formData.file && Array.isArray(formData.file)) {
+                for (const file of formData.file) {
+                    form.append('file', file);
+                }
+            } else if (formData.file && typeof formData.file !== 'string') {
                 form.append('file', formData.file);
             }
 
             if (isUpdating) {
-                form.append('existingFile', editingCommitment?.file || 'null');
+                form.append('existingFiles', editingCommitment?.file || 'null');
             }
 
             console.log(`[API] ${method} ${endpoint}`, {
@@ -134,16 +137,15 @@ export const KomitmenPelayananTab = () => {
         closeDeleteConfirm();
     };
 
-    // Handle view image
-    const handleViewImage = (imageUrl: string) => {
-        setSelectedImageUrl(imageUrl);
-        openImageModal();
+    // Parse and get file list from comma-separated string
+    const getFilesList = (fileString: string | undefined | null): string[] => {
+        if (!fileString) return [];
+        return fileString.split(',').map(f => f.trim()).filter(f => f);
     };
 
-    // Handle close image modal
-    const handleCloseImageModal = () => {
-        setSelectedImageUrl(null);
-        closeImageModal();
+    // Extract filename from path
+    const getFileName = (filePath: string): string => {
+        return filePath.split('/').pop() || filePath;
     };
 
     // Handle confirm delete commitment
@@ -285,14 +287,22 @@ export const KomitmenPelayananTab = () => {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {commitment.file ? (
-                                                <button
-                                                    onClick={() => handleViewImage(commitment.file!)}
-                                                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline transition"
-                                                    title="Lihat foto"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    Lihat Foto
-                                                </button>
+                                                <div className="space-y-1">
+                                                    {getFilesList(commitment.file).map((filePath, idx) => (
+                                                        <a
+                                                            key={idx}
+                                                            href={filePath}
+                                                            download
+                                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline transition w-fit"
+                                                            title="Download file"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                            <span className="text-xs">
+                                                                Download File {getFilesList(commitment.file).length > 1 ? `(${idx + 1}/${getFilesList(commitment.file).length})` : ''}
+                                                            </span>
+                                                        </a>
+                                                    ))}
+                                                </div>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
@@ -384,68 +394,6 @@ export const KomitmenPelayananTab = () => {
                 isLoading={isDeleting}
             />
 
-            {/* Image Preview Modal */}
-            <>
-                {/* Backdrop */}
-                <div
-                    className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isImageModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                        }`}
-                    onClick={handleCloseImageModal}
-                />
-
-                {/* Modal */}
-                <div
-                    className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${isImageModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                        }`}
-                >
-                    <div
-                        className={`bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300 transform ${isImageModalOpen ? 'scale-100' : 'scale-95'
-                            }`}
-                    >
-                        {/* Close Button */}
-                        <div className="absolute top-4 right-4 z-10">
-                            <button
-                                onClick={handleCloseImageModal}
-                                className="text-gray-500 hover:text-gray-700 transition bg-white rounded-full p-2 hover:bg-gray-100 shadow-md hover:shadow-lg"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        {/* Image Container - Scrollable */}
-                        {selectedImageUrl && (
-                            <div className="flex-1 overflow-y-auto flex items-center justify-center bg-gray-50 px-8 pt-12 pb-8">
-                                <img
-                                    src={selectedImageUrl}
-                                    alt="Preview"
-                                    className="max-w-full max-h-full object-contain rounded-lg"
-                                />
-                            </div>
-                        )}
-
-                        {/* Footer */}
-                        {selectedImageUrl && (
-                            <div className="px-6 py-4 bg-white flex justify-end gap-2 border-t border-gray-200 shrink-0">
-                                <a
-                                    href={selectedImageUrl}
-                                    download
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition inline-flex items-center gap-2"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    Download
-                                </a>
-                                <button
-                                    type="button"
-                                    onClick={handleCloseImageModal}
-                                    className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition"
-                                >
-                                    Tutup
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </>
         </>
     );
 };

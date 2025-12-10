@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CommitmentController } from '@/modules/controllers/commitments/CommitmentController';
-import { saveCommitmentFile, validateUploadFile, deleteCommitmentFile } from '@/shared/fileUploadHandler';
+import { saveMultipleCommitmentFiles, validateUploadFile, deleteMultipleCommitmentFiles } from '@/shared/fileUploadHandler';
 
 export async function GET(
   request: NextRequest,
@@ -53,34 +53,44 @@ export async function PUT(
     const icon = formData.get('icon') as string | undefined;
     const sortOrder = formData.get('sort_order') as string | undefined;
     const status = formData.get('status') ? parseInt(formData.get('status') as string) : undefined;
-    const fileInput = formData.get('file') as File | null;
-    const existingFile = formData.get('existingFile') as string | null;
+    const fileInputs = formData.getAll('file') as File[];
+    const existingFiles = formData.get('existingFiles') as string | null;
 
     let filePath: string | undefined;
 
-    // Handle file upload if new file provided
-    if (fileInput && fileInput.size > 0) {
-      const validation = validateUploadFile(fileInput);
-      if (!validation.valid) {
-        return NextResponse.json(
-          { error: validation.error },
-          { status: 400 }
-        );
-      }
-      filePath = await saveCommitmentFile(fileInput);
+    // Handle file uploads if new files provided
+    if (fileInputs && fileInputs.length > 0) {
+      const validFiles: File[] = [];
       
-      // Delete old file if exists
-      if (existingFile) {
-        await deleteCommitmentFile(existingFile);
+      for (const file of fileInputs) {
+        if (file.size > 0) {
+          const validation = validateUploadFile(file);
+          if (!validation.valid) {
+            return NextResponse.json(
+              { error: validation.error },
+              { status: 400 }
+            );
+          }
+          validFiles.push(file);
+        }
       }
-    } else if (existingFile === 'null' || existingFile === '') {
-      // User removed the file
+
+      if (validFiles.length > 0) {
+        filePath = await saveMultipleCommitmentFiles(validFiles);
+        
+        // Delete old files if exists
+        if (existingFiles && existingFiles !== 'null') {
+          await deleteMultipleCommitmentFiles(existingFiles);
+        }
+      }
+    } else if (existingFiles === 'null' || existingFiles === '') {
+      // User removed all files
       filePath = null;
-      if (existingFile !== 'null') {
-        await deleteCommitmentFile(existingFile);
+      if (existingFiles && existingFiles !== 'null') {
+        await deleteMultipleCommitmentFiles(existingFiles);
       }
     }
-    // If no new file and not removing, keep existing file
+    // If no new file and not removing, keep existing files
 
     const result = await CommitmentController.update(commitmentId, {
       name,

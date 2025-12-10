@@ -37,7 +37,46 @@ export async function saveCommitmentFile(file: File): Promise<string> {
 }
 
 /**
- * Delete file from storage
+ * Save multiple uploaded files and return comma-separated paths
+ */
+export async function saveMultipleCommitmentFiles(files: File[]): Promise<string> {
+  try {
+    // Create directory if it doesn't exist
+    if (!existsSync(UPLOAD_DIR)) {
+      await mkdir(UPLOAD_DIR, { recursive: true });
+    }
+
+    const savedFiles: string[] = [];
+
+    for (const file of files) {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomNum = Math.floor(Math.random() * 10000);
+      const originalName = file.name.replace(/\s+/g, '-').toLowerCase();
+      const filename = `${timestamp}-${randomNum}-${originalName}`;
+      const filepath = join(UPLOAD_DIR, filename);
+
+      // Convert File to Buffer
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      // Write file to disk
+      await writeFile(filepath, buffer);
+
+      // Add to saved files array
+      savedFiles.push(`/storage/commitments/${filename}`);
+    }
+
+    // Return comma-separated paths
+    return savedFiles.join(',');
+  } catch (error) {
+    console.error('[FileUploadHandler] Error saving multiple files:', error);
+    throw new Error(`Gagal menyimpan file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Delete single file from storage
  */
 export async function deleteCommitmentFile(filePath: string): Promise<void> {
   try {
@@ -53,6 +92,32 @@ export async function deleteCommitmentFile(filePath: string): Promise<void> {
     }
   } catch (error) {
     console.error('[FileUploadHandler] Error deleting file:', error);
+    // Don't throw error on delete failure
+  }
+}
+
+/**
+ * Delete multiple files from storage (comma-separated paths)
+ */
+export async function deleteMultipleCommitmentFiles(filesPaths: string): Promise<void> {
+  try {
+    if (!filesPaths) {
+      return;
+    }
+
+    const { unlink } = await import('fs/promises');
+    const paths = filesPaths.split(',').map(p => p.trim()).filter(p => p);
+
+    for (const filePath of paths) {
+      if (filePath.startsWith('/storage/commitments/')) {
+        const fullPath = join(process.cwd(), 'public', filePath);
+        if (existsSync(fullPath)) {
+          await unlink(fullPath);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[FileUploadHandler] Error deleting multiple files:', error);
     // Don't throw error on delete failure
   }
 }

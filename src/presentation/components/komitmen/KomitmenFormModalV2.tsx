@@ -9,7 +9,7 @@ import { RichTextToolbar } from '@/presentation/components/shared/RichTextToolba
 export interface KomitmenFormData {
     name: string;
     description?: string | null;
-    file?: File | string | null;
+    file?: File[] | string | null;
     icon?: string | null;
     sort_order?: number | null;
     status: number;
@@ -53,8 +53,8 @@ export const KomitmenFormModalV2 = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
     const [usedSortOrders, setUsedSortOrders] = useState<number[]>([]);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [filePreview, setFilePreview] = useState<string>('');
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [existingFiles, setExistingFiles] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const descriptionEditorRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +90,11 @@ export const KomitmenFormModalV2 = ({
                 sort_order: editingCommitment.sort_order || null,
                 status: editingCommitment.status,
             });
-            setFilePreview(editingCommitment.file || '');
+            // Parse existing files (comma-separated)
+            const files = editingCommitment.file
+                ? editingCommitment.file.split(',').map(f => f.trim()).filter(f => f)
+                : [];
+            setExistingFiles(files);
             if (descriptionEditorRef.current) {
                 descriptionEditorRef.current.innerHTML = editingCommitment.description || '';
             }
@@ -103,12 +107,12 @@ export const KomitmenFormModalV2 = ({
                 sort_order: null,
                 status: 1,
             });
-            setFilePreview('');
+            setExistingFiles([]);
             if (descriptionEditorRef.current) {
                 descriptionEditorRef.current.innerHTML = '';
             }
         }
-        setSelectedFile(null);
+        setSelectedFiles([]);
         setErrors({});
     }, [editingCommitment, isOpen]);
 
@@ -167,33 +171,54 @@ export const KomitmenFormModalV2 = ({
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('File harus berupa gambar');
-            return;
+        const newFiles: File[] = [];
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const ALLOWED_TYPES = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            // Validate file size
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`File "${file.name}" ukurannya melebihi 10MB`);
+                continue;
+            }
+
+            // Validate file type
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                alert(`File "${file.name}" tipe nya tidak didukung. Gunakan: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, WEBP`);
+                continue;
+            }
+
+            newFiles.push(file);
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran file maksimal 5MB');
-            return;
+        if (newFiles.length > 0) {
+            const updatedFiles = [...selectedFiles, ...newFiles];
+            setSelectedFiles(updatedFiles);
+            setFormData((prev) => ({
+                ...prev,
+                file: updatedFiles,
+            }));
         }
 
-        setSelectedFile(file);
-        setFormData((prev) => ({
-            ...prev,
-            file: file,
-        }));
-
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setFilePreview(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+        // Reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     const handleIconSelect = (iconName: string) => {
@@ -203,15 +228,17 @@ export const KomitmenFormModalV2 = ({
         }));
     };
 
-    const handleRemoveFile = () => {
-        setSelectedFile(null);
-        setFormData((prev) => ({
-            ...prev,
-            file: null,
-        }));
-        setFilePreview('');
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+    const handleRemoveFile = (index: number, isNewFile: boolean) => {
+        if (isNewFile) {
+            const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+            setSelectedFiles(updatedFiles);
+            setFormData((prev) => ({
+                ...prev,
+                file: updatedFiles.length > 0 ? updatedFiles : null,
+            }));
+        } else {
+            const updatedExistingFiles = existingFiles.filter((_, i) => i !== index);
+            setExistingFiles(updatedExistingFiles);
         }
     };
 
@@ -265,212 +292,248 @@ export const KomitmenFormModalV2 = ({
                         </button>
                     </div>
 
-                    {/* Form Body */}
-                    <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 p-6 space-y-6">
-                        {/* Nama Komitmen */}
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                Nama Komitmen <span className="text-red-600">*</span>
-                            </label>
-                            <Input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Masukkan nama komitmen"
-                                className={errors.name ? 'border-red-500' : ''}
-                                disabled={isSubmitting}
-                            />
-                            {errors.name && (
-                                <p className="text-red-600 text-sm mt-1">{errors.name}</p>
-                            )}
-                        </div>
-
-                        {/* Deskripsi dengan Rich Text Editor */}
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-900">
-                                Deskripsi <span className="text-red-600">*</span>
-                            </label>
-                            <div className={`border rounded-lg overflow-hidden ${errors.description ? 'border-red-500' : 'border-gray-300'}`}>
-                                <RichTextToolbar editorRef={descriptionEditorRef} />
-                                {/* Content Editor */}
-                                <div
-                                    ref={descriptionEditorRef}
-                                    contentEditable
-                                    suppressContentEditableWarning
-                                    dir="ltr"
-                                    className="w-full p-4 border-none outline-none resize-none overflow-auto"
-                                    style={{
-                                        minHeight: '120px',
-                                        direction: 'ltr',
-                                        textAlign: 'left'
-                                    }}
-                                    onInput={(e) => {
-                                        const html = (e.target as HTMLDivElement).innerHTML;
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            description: html,
-                                        }));
-                                        if (errors.description) {
-                                            setErrors((prev) => {
-                                                const newErrors = { ...prev };
-                                                delete newErrors.description;
-                                                return newErrors;
-                                            });
-                                        }
-                                    }}
-                                />
-                            </div>
-                            {errors.description && (
-                                <p className="text-red-600 text-sm mt-1">{errors.description}</p>
-                            )}
-                        </div>
-
-                        {/* File Upload dengan Drag & Drop */}
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-900">
-                                Upload File / Gambar
-                            </label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition bg-gray-50">
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    id="komitmen-file-input"
+                    {/* Form Body - Wrapper */}
+                    <div className="overflow-y-auto flex-1 p-6 space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Nama Komitmen */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Nama Komitmen <span className="text-red-600">*</span>
+                                </label>
+                                <Input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Masukkan nama komitmen"
+                                    className={errors.name ? 'border-red-500' : ''}
                                     disabled={isSubmitting}
                                 />
-                                <label
-                                    htmlFor="komitmen-file-input"
-                                    className="cursor-pointer flex flex-col items-center gap-2"
-                                >
-                                    <Upload className="text-gray-400 w-8 h-8" />
-                                    <span className="text-gray-600 text-sm font-medium">
-                                        Klik untuk pilih file atau drag & drop
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                        (JPG, PNG, GIF - Maksimal 5MB)
-                                    </span>
-                                </label>
+                                {errors.name && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                                )}
                             </div>
 
-                            {selectedFile && (
-                                <p className="text-sm text-blue-600">
-                                    ✓ File dipilih: {selectedFile.name}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Preview File */}
-                        {filePreview && (
+                            {/* Deskripsi dengan Rich Text Editor */}
                             <div className="space-y-2">
                                 <label className="block text-sm font-semibold text-gray-900">
-                                    Preview Gambar
+                                    Deskripsi <span className="text-red-600">*</span>
                                 </label>
-                                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                                    <img
-                                        src={filePreview}
-                                        alt="Preview"
-                                        className="max-w-full max-h-64 mx-auto rounded"
+                                <div className={`border rounded-lg overflow-hidden ${errors.description ? 'border-red-500' : 'border-gray-300'}`}>
+                                    <RichTextToolbar editorRef={descriptionEditorRef} />
+                                    {/* Content Editor */}
+                                    <div
+                                        ref={descriptionEditorRef}
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        dir="ltr"
+                                        className="w-full p-4 border-none outline-none resize-none overflow-auto"
+                                        style={{
+                                            minHeight: '120px',
+                                            direction: 'ltr',
+                                            textAlign: 'left'
+                                        }}
+                                        onInput={(e) => {
+                                            const html = (e.target as HTMLDivElement).innerHTML;
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                description: html,
+                                            }));
+                                            if (errors.description) {
+                                                setErrors((prev) => {
+                                                    const newErrors = { ...prev };
+                                                    delete newErrors.description;
+                                                    return newErrors;
+                                                });
+                                            }
+                                        }}
                                     />
                                 </div>
+                                {errors.description && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.description}</p>
+                                )}
                             </div>
-                        )}
 
-                        {/* Icon Picker */}
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-900">
-                                Pilih Icon <span className="text-red-600">*</span>
-                            </label>
-                            <div className={`flex items-center gap-3 p-4 border rounded-lg transition ${errors.icon ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100'}`}>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsIconPickerOpen(true)}
-                                    disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    <Upload className="w-4 h-4" />
-                                    Pilih Icon
-                                </button>
-                                {formData.icon && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-px h-8 bg-gray-300" />
-                                        <span className="text-2xl" title={formData.icon}>{formData.icon}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setFormData((prev) => ({
-                                                    ...prev,
-                                                    icon: null,
-                                                }));
-                                                if (errors.icon) {
-                                                    setErrors((prev) => {
-                                                        const newErrors = { ...prev };
-                                                        delete newErrors.icon;
-                                                        return newErrors;
-                                                    });
-                                                }
-                                            }}
-                                            disabled={isSubmitting}
-                                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                                            title="Hapus icon"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
+                            {/* File Upload dengan Drag & Drop */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-gray-900">
+                                    Upload File (Bisa lebih dari satu file)
+                                </label>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition bg-gray-50">
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp"
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                        id="komitmen-file-input"
+                                        disabled={isSubmitting}
+                                        multiple
+                                    />
+                                    <label
+                                        htmlFor="komitmen-file-input"
+                                        className="cursor-pointer flex flex-col items-center gap-2"
+                                    >
+                                        <Upload className="text-gray-400 w-8 h-8" />
+                                        <span className="text-gray-600 text-sm font-medium">
+                                            Klik untuk pilih file atau drag & drop
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            (PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, WEBP - Maksimal 10MB per file)
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* Existing Files List */}
+                                {existingFiles.length > 0 && (
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-semibold text-gray-900">
+                                            File yang ada
+                                        </label>
+                                        <div className="space-y-2">
+                                            {existingFiles.map((file, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                                    <span className="text-sm text-gray-700">{file.split('/').pop()}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveFile(idx, false)}
+                                                        disabled={isSubmitting}
+                                                        className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                                        title="Hapus file"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* New Files List */}
+                                {selectedFiles.length > 0 && (
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-semibold text-gray-900">
+                                            File baru ({selectedFiles.length})
+                                        </label>
+                                        <div className="space-y-2">
+                                            {selectedFiles.map((file, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-200">
+                                                    <div>
+                                                        <p className="text-sm text-gray-700">{file.name}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveFile(idx, true)}
+                                                        disabled={isSubmitting}
+                                                        className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                                        title="Hapus file"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
-                            {errors.icon && (
-                                <p className="text-red-600 text-sm mt-1">{errors.icon}</p>
-                            )}
-                        </div>
 
-                        {/* Urutan / Sort Order */}
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                Nomor Urutan <span className="text-red-600">*</span>
-                            </label>
-                            <select
-                                name="sort_order"
-                                value={formData.sort_order || ''}
-                                onChange={handleChange}
-                                disabled={isSubmitting}
-                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed ${errors.sort_order ? 'border-red-500' : 'border-gray-300'}`}
-                            >
-                                <option value="">-- Pilih Nomor Urutan --</option>
-                                {Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
-                                    <option
-                                        key={num}
-                                        value={num}
-                                        disabled={usedSortOrders.includes(num)}
+                            {/* Icon Picker */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-gray-900">
+                                    Pilih Icon <span className="text-red-600">*</span>
+                                </label>
+                                <div className={`flex items-center gap-3 p-4 border rounded-lg transition ${errors.icon ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100'}`}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsIconPickerOpen(true)}
+                                        disabled={isSubmitting}
+                                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
-                                        {usedSortOrders.includes(num) ? `${num} (Sudah dipakai)` : num}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.sort_order && (
-                                <p className="text-red-600 text-sm mt-1">{errors.sort_order}</p>
-                            )}
-                        </div>
+                                        <Upload className="w-4 h-4" />
+                                        Pilih Icon
+                                    </button>
+                                    {formData.icon && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-px h-8 bg-gray-300" />
+                                            <span className="text-2xl" title={formData.icon}>{formData.icon}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        icon: null,
+                                                    }));
+                                                    if (errors.icon) {
+                                                        setErrors((prev) => {
+                                                            const newErrors = { ...prev };
+                                                            delete newErrors.icon;
+                                                            return newErrors;
+                                                        });
+                                                    }
+                                                }}
+                                                disabled={isSubmitting}
+                                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                                                title="Hapus icon"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                {errors.icon && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.icon}</p>
+                                )}
+                            </div>
 
-                        {/* Status */}
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                Status
-                            </label>
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                disabled={isSubmitting}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={1}>Aktif</option>
-                                <option value={0}>Non-Aktif</option>
-                            </select>
-                        </div>
-                    </form>
+                            {/* Urutan / Sort Order */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Nomor Urutan <span className="text-red-600">*</span>
+                                </label>
+                                <select
+                                    name="sort_order"
+                                    value={formData.sort_order || ''}
+                                    onChange={handleChange}
+                                    disabled={isSubmitting}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed ${errors.sort_order ? 'border-red-500' : 'border-gray-300'}`}
+                                >
+                                    <option value="">-- Pilih Nomor Urutan --</option>
+                                    {Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
+                                        <option
+                                            key={num}
+                                            value={num}
+                                            disabled={usedSortOrders.includes(num)}
+                                        >
+                                            {usedSortOrders.includes(num) ? `${num} (Sudah dipakai)` : num}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.sort_order && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.sort_order}</p>
+                                )}
+                            </div>
+
+                            {/* Status */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Status
+                                </label>
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    disabled={isSubmitting}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    <option value={1}>Aktif</option>
+                                    <option value={0}>Non-Aktif</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 px-6 py-4 bg-gray-50">

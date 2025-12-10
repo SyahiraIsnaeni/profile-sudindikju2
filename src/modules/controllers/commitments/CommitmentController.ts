@@ -1,197 +1,128 @@
-import { PrismaClient } from '@prisma/client';
 import { CreateCommitmentDTO, UpdateCommitmentDTO, CommitmentQueryDTO } from '../../dtos/commitments';
 import { CommitmentResponse } from '../../entities/commitments/Commitment';
+import { CommitmentRepository } from '../../repositories/commitments/CommitmentRepository';
 
-const prisma = new PrismaClient();
+const commitmentRepository = new CommitmentRepository();
 
 export class CommitmentController {
-  static async getAll(query: CommitmentQueryDTO) {
-    try {
-      const skip = (query.page - 1) * query.pageSize;
+    static async getAll(query: CommitmentQueryDTO) {
+        try {
+            const result = await commitmentRepository.getAll(query);
 
-      const where: any = {
-        deleted_at: null,
-      };
+            const commitmentsResponse: CommitmentResponse[] = result.commitments.map((commitment) => ({
+                id: commitment.id,
+                name: commitment.name,
+                description: commitment.description,
+                file: commitment.file,
+                icon: commitment.icon,
+                sort_order: commitment.sort_order,
+                status: commitment.status,
+                created_at: commitment.created_at,
+                updated_at: commitment.updated_at,
+            }));
 
-      if (query.search) {
-        where.OR = [
-          { name: { contains: query.search, mode: 'insensitive' } },
-          { description: { contains: query.search, mode: 'insensitive' } },
-        ];
-      }
-
-      if (query.status !== undefined) {
-        where.status = query.status;
-      }
-
-      const [commitments, total] = await Promise.all([
-        prisma.commitment.findMany({
-          where,
-          skip,
-          take: query.pageSize,
-          orderBy: { sort_order: 'asc' },
-        }),
-        prisma.commitment.count({ where }),
-      ]);
-
-      const commitmentsResponse: CommitmentResponse[] = commitments.map((commitment) => ({
-        id: commitment.id,
-        name: commitment.name,
-        description: commitment.description,
-        file: commitment.file,
-        icon: commitment.icon,
-        sort_order: commitment.sort_order,
-        status: commitment.status,
-        created_at: commitment.created_at,
-        updated_at: commitment.updated_at,
-      }));
-
-      return {
-        success: true,
-        data: commitmentsResponse,
-        meta: {
-          total,
-          page: query.page,
-          pageSize: query.pageSize,
-          totalPages: Math.ceil(total / query.pageSize),
-        },
-      };
-    } finally {
-      await prisma.$disconnect();
+            return {
+                success: true,
+                data: commitmentsResponse,
+                meta: {
+                    total: result.total,
+                    page: result.page,
+                    pageSize: result.pageSize,
+                    totalPages: result.totalPages,
+                },
+            };
+        } catch (error) {
+            console.error('[CommitmentController] Error in getAll:', error);
+            throw error;
+        }
     }
-  }
 
-  static async getById(commitmentId: number) {
-    try {
-      const commitment = await prisma.commitment.findUnique({
-        where: { id: commitmentId },
-      });
+    static async getById(commitmentId: number) {
+        try {
+            const commitment = await commitmentRepository.getById(commitmentId);
 
-      if (!commitment) {
-        throw new Error('Komitmen pelayanan tidak ditemukan');
-      }
+            const response: CommitmentResponse = {
+                id: commitment.id,
+                name: commitment.name,
+                description: commitment.description,
+                file: commitment.file,
+                icon: commitment.icon,
+                sort_order: commitment.sort_order,
+                status: commitment.status,
+                created_at: commitment.created_at,
+                updated_at: commitment.updated_at,
+            };
 
-      if (commitment.deleted_at) {
-        throw new Error('Komitmen pelayanan sudah dihapus');
-      }
-
-      const response: CommitmentResponse = {
-        id: commitment.id,
-        name: commitment.name,
-        description: commitment.description,
-        file: commitment.file,
-        icon: commitment.icon,
-        sort_order: commitment.sort_order,
-        status: commitment.status,
-        created_at: commitment.created_at,
-        updated_at: commitment.updated_at,
-      };
-
-      return { success: true, data: response };
-    } finally {
-      await prisma.$disconnect();
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('[CommitmentController] Error in getById:', error);
+            throw error;
+        }
     }
-  }
 
-  static async create(dto: CreateCommitmentDTO) {
-    try {
-      const commitment = await prisma.commitment.create({
-        data: {
-          name: dto.name,
-          description: dto.description || null,
-          file: dto.file || null,
-          icon: dto.icon || null,
-          sort_order: dto.sort_order || null,
-          status: dto.status,
-        },
-      });
+    static async create(dto: CreateCommitmentDTO) {
+        try {
+            const commitment = await commitmentRepository.create(dto);
 
-      const response: CommitmentResponse = {
-        id: commitment.id,
-        name: commitment.name,
-        description: commitment.description,
-        file: commitment.file,
-        icon: commitment.icon,
-        sort_order: commitment.sort_order,
-        status: commitment.status,
-        created_at: commitment.created_at,
-        updated_at: commitment.updated_at,
-      };
+            const response: CommitmentResponse = {
+                id: commitment.id,
+                name: commitment.name,
+                description: commitment.description,
+                file: commitment.file,
+                icon: commitment.icon,
+                sort_order: commitment.sort_order,
+                status: commitment.status,
+                created_at: commitment.created_at,
+                updated_at: commitment.updated_at,
+            };
 
-      return {
-        success: true,
-        data: response,
-        message: 'Komitmen pelayanan berhasil dibuat',
-      };
-    } finally {
-      await prisma.$disconnect();
+            return {
+                success: true,
+                data: response,
+                message: 'Komitmen pelayanan berhasil dibuat',
+            };
+        } catch (error) {
+            console.error('[CommitmentController] Error in create:', error);
+            throw error;
+        }
     }
-  }
 
-  static async update(commitmentId: number, dto: UpdateCommitmentDTO) {
-    try {
-      const commitment = await prisma.commitment.findUnique({
-        where: { id: commitmentId },
-      });
+    static async update(commitmentId: number, dto: UpdateCommitmentDTO) {
+        try {
+            const updatedCommitment = await commitmentRepository.update(commitmentId, dto);
 
-      if (!commitment) {
-        throw new Error('Komitmen pelayanan tidak ditemukan');
-      }
+            const response: CommitmentResponse = {
+                id: updatedCommitment.id,
+                name: updatedCommitment.name,
+                description: updatedCommitment.description,
+                file: updatedCommitment.file,
+                icon: updatedCommitment.icon,
+                sort_order: updatedCommitment.sort_order,
+                status: updatedCommitment.status,
+                created_at: updatedCommitment.created_at,
+                updated_at: updatedCommitment.updated_at,
+            };
 
-      const updateData: any = {};
-
-      if (dto.name !== undefined) updateData.name = dto.name;
-      if (dto.description !== undefined) updateData.description = dto.description;
-      if (dto.file !== undefined) updateData.file = dto.file;
-      if (dto.icon !== undefined) updateData.icon = dto.icon;
-      if (dto.sort_order !== undefined) updateData.sort_order = dto.sort_order;
-      if (dto.status !== undefined) updateData.status = dto.status;
-
-      const updatedCommitment = await prisma.commitment.update({
-        where: { id: commitmentId },
-        data: updateData,
-      });
-
-      const response: CommitmentResponse = {
-        id: updatedCommitment.id,
-        name: updatedCommitment.name,
-        description: updatedCommitment.description,
-        file: updatedCommitment.file,
-        icon: updatedCommitment.icon,
-        sort_order: updatedCommitment.sort_order,
-        status: updatedCommitment.status,
-        created_at: updatedCommitment.created_at,
-        updated_at: updatedCommitment.updated_at,
-      };
-
-      return {
-        success: true,
-        data: response,
-        message: 'Komitmen pelayanan berhasil diupdate',
-      };
-    } finally {
-      await prisma.$disconnect();
+            return {
+                success: true,
+                data: response,
+                message: 'Komitmen pelayanan berhasil diupdate',
+            };
+        } catch (error) {
+            console.error('[CommitmentController] Error in update:', error);
+            throw error;
+        }
     }
-  }
 
-  static async delete(commitmentId: number) {
-    try {
-      const commitment = await prisma.commitment.findUnique({
-        where: { id: commitmentId },
-      });
+    static async delete(commitmentId: number) {
+        try {
+            await commitmentRepository.delete(commitmentId);
 
-      if (!commitment) {
-        throw new Error('Komitmen pelayanan tidak ditemukan');
-      }
-
-      await prisma.commitment.update({
-        where: { id: commitmentId },
-        data: { deleted_at: new Date() },
-      });
-
-      return { success: true, message: 'Komitmen pelayanan berhasil dihapus' };
-    } finally {
-      await prisma.$disconnect();
+            return { success: true, message: 'Komitmen pelayanan berhasil dihapus' };
+        } catch (error) {
+            console.error('[CommitmentController] Error in delete:', error);
+            throw error;
+        }
     }
-  }
 }
+

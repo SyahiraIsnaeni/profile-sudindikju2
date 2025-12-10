@@ -521,16 +521,32 @@ export const KomitmenFormModalV2 = ({
                                 <label className="block text-sm font-semibold text-gray-900 mb-2">
                                     Status
                                 </label>
-                                <select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    disabled={isSubmitting}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                >
-                                    <option value={1}>Aktif</option>
-                                    <option value={0}>Non-Aktif</option>
-                                </select>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            value="1"
+                                            checked={formData.status === 1}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-sm text-gray-700">Aktif</span>
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            value="0"
+                                            checked={formData.status === 0}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-sm text-gray-700">Non-Aktif</span>
+                                    </label>
+                                </div>
                             </div>
                         </form>
                     </div>

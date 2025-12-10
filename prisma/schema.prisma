@@ -107,3 +107,15 @@ model Contact {
 
   @@map("contacts")
 }
+
+model GaleriKegiatan {
+  id         Int       @id @default(autoincrement())
+  judul      String    @db.VarChar(255)
+  foto       String?   @db.Text
+  status     Int       @default(1)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@map("galeri_kegiatans")
+}

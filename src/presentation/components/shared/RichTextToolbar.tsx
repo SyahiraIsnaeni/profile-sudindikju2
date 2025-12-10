@@ -121,6 +121,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
         <div className="flex items-center gap-2 bg-gray-100 p-3 border-b border-gray-300 flex-wrap">
             {/* Bold & Italic & Underline */}
             <button
+                type="button"
                 onClick={() => executeCommand('bold')}
                 className="p-2 rounded transition hover:bg-gray-200"
                 title="Bold (Ctrl+B)"
@@ -128,6 +129,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                 <Bold size={18} />
             </button>
             <button
+                type="button"
                 onClick={() => executeCommand('italic')}
                 className="p-2 rounded transition hover:bg-gray-200"
                 title="Italic (Ctrl+I)"
@@ -135,6 +137,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                 <Italic size={18} />
             </button>
             <button
+                type="button"
                 onClick={() => executeCommand('underline')}
                 className="p-2 rounded transition hover:bg-gray-200"
                 title="Underline (Ctrl+U)"
@@ -146,6 +149,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
 
             {/* Text Alignment */}
             <button
+                type="button"
                 onClick={() => executeCommand('justifyLeft')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Align Left"
@@ -153,6 +157,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                 <AlignLeft size={18} />
             </button>
             <button
+                type="button"
                 onClick={() => executeCommand('justifyCenter')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Align Center"
@@ -160,6 +165,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                 <AlignCenter size={18} />
             </button>
             <button
+                type="button"
                 onClick={() => executeCommand('justifyRight')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Align Right"
@@ -167,6 +173,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                 <AlignRight size={18} />
             </button>
             <button
+                type="button"
                 onClick={() => executeCommand('justifyFull')}
                 className="p-2 hover:bg-gray-200 rounded transition"
                 title="Justify"
@@ -178,6 +185,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
 
             {/* Numbering & Lists */}
             <button
+                type="button"
                 onClick={() => executeCommand('insertOrderedList')}
                 className="p-2 rounded transition hover:bg-gray-200"
                 title="Numbered List (1, 2, 3...)"
@@ -185,6 +193,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                 <ListOrdered size={18} />
             </button>
             <button
+                type="button"
                 onClick={() => executeCommand('insertUnorderedList')}
                 className="p-2 rounded transition hover:bg-gray-200"
                 title="Bullet List (•)"
@@ -197,6 +206,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
             {/* Text Color Picker */}
             <div className="relative">
                 <button
+                    type="button"
                     onClick={() => {
                         setShowColorPicker(!showColorPicker);
                         setShowHighlightPicker(false);
@@ -214,6 +224,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                     <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg p-3 shadow-lg z-10 grid grid-cols-8 gap-2" style={{ width: '280px' }}>
                         {textColors.map((color) => (
                             <button
+                                type="button"
                                 key={color.value}
                                 onClick={() => handleTextColor(color.value)}
                                 title={color.name}
@@ -228,6 +239,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
             {/* Highlight Color Picker */}
             <div className="relative">
                 <button
+                    type="button"
                     onClick={() => {
                         setShowHighlightPicker(!showHighlightPicker);
                         setShowColorPicker(false);
@@ -245,6 +257,7 @@ export function RichTextToolbar({ onCommand, editorRef }: RichTextToolbarProps) 
                     <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg p-3 shadow-lg z-10 grid grid-cols-7 gap-2" style={{ width: '280px' }}>
                         {highlightColors.map((color) => (
                             <button
+                                type="button"
                                 key={color.value}
                                 onClick={() => handleHighlightColor(color.value)}
                                 title={color.name}

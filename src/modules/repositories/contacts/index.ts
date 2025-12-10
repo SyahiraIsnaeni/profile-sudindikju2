@@ -1,0 +1,1 @@
+export { ContactRepository } from './ContactRepository';

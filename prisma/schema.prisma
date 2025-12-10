@@ -92,3 +92,18 @@ model Commitment {
 
   @@map("commitments")
 }
+
+model Contact {
+  id        Int     @id @default(autoincrement())
+  telephone String? @db.VarChar(20)
+  faximile  String? @db.VarChar(20)
+  instagram String? @db.VarChar(255)
+  twitter   String? @db.VarChar(255)
+  tiktok    String? @db.VarChar(255)
+  youtube   String? @db.VarChar(255)
+  url_maps  String? @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("contacts")
+}

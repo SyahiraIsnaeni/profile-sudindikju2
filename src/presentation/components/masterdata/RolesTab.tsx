@@ -8,6 +8,7 @@ import { Pagination } from '@/presentation/components/shared/Pagination';
 import { RoleFormModal } from '@/presentation/components/masterdata/RoleFormModal';
 import { RolePermissionsModal } from '@/presentation/components/masterdata/RolePermissionsModal';
 import { ConfirmationModal } from '@/presentation/components/shared/ConfirmationModal';
+import { RolesFilter } from '@/presentation/components/masterdata/RolesFilter';
 import { Edit2, Plus, Trash2 } from 'lucide-react';
 
 interface RoleWithPermissions {
@@ -56,6 +57,39 @@ export const RolesTab = () => {
     const { isOpen: isDeleteConfirmOpen, open: openDeleteConfirm, close: closeDeleteConfirm } = useModal();
     const [roleToDelete, setRoleToDelete] = useState<RoleWithPermissions | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [filteredRoles, setFilteredRoles] = useState<RoleWithPermissions[]>([]);
+    const [isFilterActive, setIsFilterActive] = useState(false);
+
+    // Handle filter
+    const handleFilter = (filters: {
+        status?: number;
+        searchValue?: string;
+    }) => {
+        if (Object.keys(filters).length === 0) {
+            // Clear filter
+            setFilteredRoles([]);
+            setIsFilterActive(false);
+            return;
+        }
+
+        // Apply filter
+        let result = [...(roles as RoleWithPermissions[])];
+
+        if (filters.status !== undefined) {
+            result = result.filter((role) => role.status === filters.status);
+        }
+
+        if (filters.searchValue) {
+            const searchTerm = filters.searchValue.toLowerCase();
+            result = result.filter((role) =>
+                role.name.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        setFilteredRoles(result);
+        setIsFilterActive(true);
+        setRolePage(1); // Reset to first page
+    };
 
     // Handle add role button
     const handleAddRole = () => {
@@ -174,13 +208,25 @@ export const RolesTab = () => {
         );
     }
 
+    const displayRoles = isFilterActive ? filteredRoles : roles;
+
     return (
         <div className="space-y-4">
+            {/* Filter Section */}
+            <RolesFilter onFilter={handleFilter} />
+
             {/* Header with Add Button */}
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                    Daftar Role & Hak Akses
-                </h3>
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                        Daftar Role & Hak Akses
+                    </h3>
+                    {isFilterActive && (
+                        <p className="text-sm text-gray-600 mt-1">
+                            Menampilkan {displayRoles.length} dari {roles.length} role
+                        </p>
+                    )}
+                </div>
                 <button
                     onClick={handleAddRole}
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded-lg transition font-medium text-sm"
@@ -213,8 +259,8 @@ export const RolesTab = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {roles.length > 0 ? (
-                                roles.map((role, idx) => {
+                            {displayRoles.length > 0 ? (
+                                displayRoles.map((role, idx) => {
                                     const roleWithPerms = role as RoleWithPermissions;
                                     const permissionCount = roleWithPerms.permissions?.length || 0;
 

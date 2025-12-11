@@ -7,6 +7,7 @@ import { Pagination } from '@/presentation/components/shared/Pagination';
 import { UserFormModal, UserFormData } from '@/presentation/components/masterdata/UserFormModal';
 import { ConfirmationModal } from '@/presentation/components/shared/ConfirmationModal';
 import { Alert } from '@/presentation/components/shared/Alert';
+import { UsersFilter } from '@/presentation/components/masterdata/UsersFilter';
 import { Edit2, Plus, Trash2 } from 'lucide-react';
 
 interface Role {
@@ -48,6 +49,8 @@ export const UsersTab = () => {
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+    const [isFilterActive, setIsFilterActive] = useState(false);
 
     // Fetch roles
     useEffect(() => {
@@ -65,6 +68,49 @@ export const UsersTab = () => {
 
         fetchRoles();
     }, []);
+
+    // Handle filter
+    const handleFilter = (filters: {
+        status?: number;
+        role_id?: number;
+        searchBy?: 'name' | 'email';
+        searchValue?: string;
+    }) => {
+        if (Object.keys(filters).length === 0) {
+            // Clear filter
+            setFilteredUsers([]);
+            setIsFilterActive(false);
+            return;
+        }
+
+        // Apply filter
+        let result = [...users];
+
+        if (filters.status !== undefined) {
+            result = result.filter((user) => user.status === filters.status);
+        }
+
+        if (filters.role_id !== undefined) {
+            result = result.filter((user) => user.role_id === filters.role_id);
+        }
+
+        if (filters.searchValue) {
+            const searchTerm = filters.searchValue.toLowerCase();
+            if (filters.searchBy === 'name') {
+                result = result.filter((user) =>
+                    user.name.toLowerCase().includes(searchTerm)
+                );
+            } else if (filters.searchBy === 'email') {
+                result = result.filter((user) =>
+                    user.email.toLowerCase().includes(searchTerm)
+                );
+            }
+        }
+
+        setFilteredUsers(result);
+        setIsFilterActive(true);
+        setUserPage(1); // Reset to first page
+    };
 
     // Handle add or update user
     const handleSaveUser = async (formData: UserFormData, userId?: number) => {
@@ -186,6 +232,8 @@ export const UsersTab = () => {
         );
     }
 
+    const displayUsers = isFilterActive ? filteredUsers : users;
+
     return (
         <>
             {/* Alert Messages */}
@@ -208,9 +256,19 @@ export const UsersTab = () => {
                 )}
             </div>
 
+            {/* Filter Section */}
+            <UsersFilter roles={roles} onFilter={handleFilter} />
+
             {/* Header with Add Button */}
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Daftar Pengguna</h2>
+                <div>
+                    <h2 className="text-lg font-bold text-gray-900">Daftar Pengguna</h2>
+                    {isFilterActive && (
+                        <p className="text-sm text-gray-600 mt-1">
+                            Menampilkan {displayUsers.length} dari {users.length} pengguna
+                        </p>
+                    )}
+                </div>
                 <button
                     onClick={openForm}
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded-lg transition font-medium text-sm"
@@ -244,8 +302,8 @@ export const UsersTab = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {users.length > 0 ? (
-                                users.map((user, idx) => (
+                            {displayUsers.length > 0 ? (
+                                displayUsers.map((user, idx) => (
                                     <tr
                                         key={user.id}
                                         className={`transition ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'

@@ -7,6 +7,7 @@ import { Pagination } from '@/presentation/components/shared/Pagination';
 import { ConfirmationModal } from '@/presentation/components/shared/ConfirmationModal';
 import { Alert } from '@/presentation/components/shared/Alert';
 import { GaleriKegiatanFormModal, GaleriKegiatanFormData } from '@/presentation/components/galeri/GaleriKegiatanFormModal';
+import { GaleriKegiatanFilter } from '@/presentation/components/galeri/GaleriKegiatanFilter';
 import { Edit2, Plus, Trash2 } from 'lucide-react';
 
 interface GaleriKegiatan {
@@ -37,6 +38,8 @@ export const GaleriKegiatanTab = () => {
     const [editingGaleri, setEditingGaleri] = useState<GaleriKegiatan | null>(null);
     const [galeriToDelete, setGaleriToDelete] = useState<GaleriKegiatan | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [filteredGaleri, setFilteredGaleri] = useState<GaleriKegiatan[]>([]);
+    const [isFilterActive, setIsFilterActive] = useState(false);
 
     // Handle add or update galeri kegiatan
     const handleSaveGaleri = async (formData: GaleriKegiatanFormData, galeriId?: number) => {
@@ -131,6 +134,37 @@ export const GaleriKegiatanTab = () => {
         closeDeleteConfirm();
     };
 
+    // Handle filter
+    const handleFilter = (filters: {
+        status?: number;
+        searchValue?: string;
+    }) => {
+        if (Object.keys(filters).length === 0) {
+            // Clear filter
+            setFilteredGaleri([]);
+            setIsFilterActive(false);
+            return;
+        }
+
+        // Apply filter
+        let result = [...galeriKegiatans];
+
+        if (filters.status !== undefined) {
+            result = result.filter((galeri) => galeri.status === filters.status);
+        }
+
+        if (filters.searchValue) {
+            const searchTerm = filters.searchValue.toLowerCase();
+            result = result.filter((galeri) =>
+                galeri.judul.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        setFilteredGaleri(result);
+        setIsFilterActive(true);
+        setPage(1); // Reset to first page
+    };
+
     // Parse and get file list from comma-separated string
     const getPhotosList = (photoString: string | undefined | null): string[] => {
         if (!photoString) return [];
@@ -203,6 +237,8 @@ export const GaleriKegiatanTab = () => {
         );
     }
 
+    const displayGaleri = isFilterActive ? filteredGaleri : galeriKegiatans;
+
     return (
         <>
             {/* Alert Messages */}
@@ -225,9 +261,19 @@ export const GaleriKegiatanTab = () => {
                 )}
             </div>
 
+            {/* Filter Section */}
+            <GaleriKegiatanFilter onFilter={handleFilter} />
+
             {/* Header with Add Button */}
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Daftar Galeri Kegiatan</h2>
+                <div>
+                    <h2 className="text-lg font-bold text-gray-900">Daftar Galeri Kegiatan</h2>
+                    {isFilterActive && (
+                        <p className="text-sm text-gray-600 mt-1">
+                            Menampilkan {displayGaleri.length} dari {galeriKegiatans.length} galeri kegiatan
+                        </p>
+                    )}
+                </div>
                 <button
                     onClick={openForm}
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded-lg transition font-medium text-sm"
@@ -258,8 +304,8 @@ export const GaleriKegiatanTab = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {galeriKegiatans.length > 0 ? (
-                                galeriKegiatans.map((galeri, idx) => (
+                            {displayGaleri.length > 0 ? (
+                                displayGaleri.map((galeri, idx) => (
                                     <tr
                                         key={galeri.id}
                                         className={`transition ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'

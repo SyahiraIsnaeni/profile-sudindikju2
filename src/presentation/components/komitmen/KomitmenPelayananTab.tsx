@@ -7,6 +7,7 @@ import { Pagination } from '@/presentation/components/shared/Pagination';
 import { ConfirmationModal } from '@/presentation/components/shared/ConfirmationModal';
 import { Alert } from '@/presentation/components/shared/Alert';
 import { KomitmenFormModalV2, KomitmenFormData } from '@/presentation/components/komitmen/KomitmenFormModalV2';
+import { KomitmenFilter } from '@/presentation/components/komitmen/KomitmenFilter';
 import { Edit2, Plus, Trash2, Download } from 'lucide-react';
 
 interface Commitment {
@@ -40,6 +41,8 @@ export const KomitmenPelayananTab = () => {
     const [editingCommitment, setEditingCommitment] = useState<Commitment | null>(null);
     const [commitmentToDelete, setCommitmentToDelete] = useState<Commitment | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [filteredCommitments, setFilteredCommitments] = useState<Commitment[]>([]);
+    const [isFilterActive, setIsFilterActive] = useState(false);
 
     // Handle add or update commitment
     const handleSaveCommitment = async (formData: KomitmenFormData, commitmentId?: number) => {
@@ -137,6 +140,37 @@ export const KomitmenPelayananTab = () => {
         closeDeleteConfirm();
     };
 
+    // Handle filter
+    const handleFilter = (filters: {
+        status?: number;
+        searchValue?: string;
+    }) => {
+        if (Object.keys(filters).length === 0) {
+            // Clear filter
+            setFilteredCommitments([]);
+            setIsFilterActive(false);
+            return;
+        }
+
+        // Apply filter
+        let result = [...commitments];
+
+        if (filters.status !== undefined) {
+            result = result.filter((commitment) => commitment.status === filters.status);
+        }
+
+        if (filters.searchValue) {
+            const searchTerm = filters.searchValue.toLowerCase();
+            result = result.filter((commitment) =>
+                commitment.name.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        setFilteredCommitments(result);
+        setIsFilterActive(true);
+        setPage(1); // Reset to first page
+    };
+
     // Parse and get file list from comma-separated string
     const getFilesList = (fileString: string | undefined | null): string[] => {
         if (!fileString) return [];
@@ -214,6 +248,8 @@ export const KomitmenPelayananTab = () => {
         );
     }
 
+    const displayCommitments = isFilterActive ? filteredCommitments : commitments;
+
     return (
         <>
             {/* Alert Messages */}
@@ -236,9 +272,19 @@ export const KomitmenPelayananTab = () => {
                 )}
             </div>
 
+            {/* Filter Section */}
+            <KomitmenFilter onFilter={handleFilter} />
+
             {/* Header with Add Button */}
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Daftar Komitmen Pelayanan</h2>
+                <div>
+                    <h2 className="text-lg font-bold text-gray-900">Daftar Komitmen Pelayanan</h2>
+                    {isFilterActive && (
+                        <p className="text-sm text-gray-600 mt-1">
+                            Menampilkan {displayCommitments.length} dari {commitments.length} komitmen
+                        </p>
+                    )}
+                </div>
                 <button
                     onClick={openForm}
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded-lg transition font-medium text-sm"
@@ -275,8 +321,8 @@ export const KomitmenPelayananTab = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {commitments.length > 0 ? (
-                                commitments.map((commitment, idx) => (
+                            {displayCommitments.length > 0 ? (
+                                displayCommitments.map((commitment, idx) => (
                                     <tr
                                         key={commitment.id}
                                         className={`transition ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'

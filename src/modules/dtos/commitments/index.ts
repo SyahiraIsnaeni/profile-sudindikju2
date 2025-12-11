@@ -1,3 +1,3 @@
-export { CreateCommitmentDTO } from './CreateCommitmentDTO';
-export { UpdateCommitmentDTO } from './UpdateCommitmentDTO';
-export { CommitmentQueryDTO } from './CommitmentQueryDTO';
+export type { CreateCommitmentDTO } from './CreateCommitmentDTO';
+export type { UpdateCommitmentDTO } from './UpdateCommitmentDTO';
+export type { CommitmentQueryDTO } from './CommitmentQueryDTO';

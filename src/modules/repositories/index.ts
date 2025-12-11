@@ -1,2 +1,2 @@
 export { CommitmentRepository } from './commitments';
-export { ProfileRepository } from './profiles';
+export { ProfileRepository } from './profiles/ProfileRepository';

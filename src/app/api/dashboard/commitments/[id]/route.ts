@@ -4,11 +4,10 @@ import { saveMultipleCommitmentFiles, validateUploadFile, deleteMultipleCommitme
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Handle params yang mungkin masih promise
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
     const commitmentId = parseInt(resolvedParams.id);
 
     if (isNaN(commitmentId) || commitmentId <= 0) {
@@ -31,11 +30,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Handle params yang mungkin masih promise
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
     const commitmentId = parseInt(resolvedParams.id);
 
     if (isNaN(commitmentId) || commitmentId <= 0) {
@@ -56,7 +54,7 @@ export async function PUT(
     const fileInputs = formData.getAll('file') as File[];
     const existingFiles = formData.get('existingFiles') as string | null;
 
-    let filePath: string | undefined;
+    let filePath: string | null | undefined;
 
     // Handle file uploads if new files provided
     if (fileInputs && fileInputs.length > 0) {
@@ -113,11 +111,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Handle params yang mungkin masih promise
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
     const commitmentId = parseInt(resolvedParams.id);
 
     if (isNaN(commitmentId) || commitmentId <= 0) {

@@ -60,7 +60,7 @@ export function ContactForm({
     tk: string,
     yt: string,
     maps: string
-  ) => {
+  ): boolean => {
     const hasData =
       tel.trim() ||
       fax.trim() ||
@@ -70,7 +70,7 @@ export function ContactForm({
       yt.trim() ||
       maps.trim();
 
-    return hasData;
+    return !!hasData;
   };
 
   const handleTelephoneChange = (value: string) => {

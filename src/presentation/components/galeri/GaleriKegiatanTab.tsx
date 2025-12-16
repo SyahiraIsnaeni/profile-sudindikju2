@@ -317,22 +317,28 @@ export const GaleriKegiatanTab = () => {
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {galeri.foto ? (
                                                 <div className="flex gap-2 flex-wrap">
-                                                    {getPhotosList(galeri.foto).map((photo, idx) => (
-                                                        <a
-                                                            key={idx}
-                                                            href={photo}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-block"
-                                                            title="Lihat foto"
-                                                        >
-                                                            <img
-                                                                src={photo}
-                                                                alt={`Foto ${idx + 1}`}
-                                                                className="w-12 h-12 object-cover rounded border border-gray-200 hover:border-blue-500 transition"
-                                                            />
-                                                        </a>
-                                                    ))}
+                                                    {getPhotosList(galeri.foto).map((photo, idx) => {
+                                                        // Convert path to API endpoint for proper file serving
+                                                        // From: /storage/galeri-kegiatans/file.jpg
+                                                        // To: /api/storage/galeri-kegiatans/file.jpg
+                                                        const apiPath = `/api${photo}`;
+                                                        return (
+                                                            <a
+                                                                key={idx}
+                                                                href={apiPath}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-block"
+                                                                title="Lihat foto"
+                                                            >
+                                                                <img
+                                                                    src={apiPath}
+                                                                    alt={`Foto ${idx + 1}`}
+                                                                    className="w-12 h-12 object-cover rounded border border-gray-200 hover:border-blue-500 transition"
+                                                                />
+                                                            </a>
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : (
                                                 <span className="text-gray-400">-</span>

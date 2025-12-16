@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CommitmentController } from '@/modules/controllers/commitments/CommitmentController';
+import { LayananController } from '@/modules/controllers/layanan/LayananController';
 import { saveMultipleCommitmentFiles, validateUploadFile } from '@/shared/fileUploadHandler';
 
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
 
-        const name = formData.get('name') as string;
-        const description = formData.get('description') as string | null;
+        const nama = formData.get('nama') as string;
+        const deskripsi = formData.get('deskripsi') as string | null;
         const icon = formData.get('icon') as string | null;
-        const sortOrder = formData.get('sort_order') as string | null;
+        const urutan = formData.get('urutan') as string | null;
         const statusStr = formData.get('status') as string;
         const status = statusStr !== null && statusStr !== '' ? parseInt(statusStr) : 1;
         const fileInputs = formData.getAll('file') as File[];
@@ -38,20 +38,20 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const result = await CommitmentController.create({
-            name,
-            description: description || null,
+        const result = await LayananController.create({
+            nama,
+            deskripsi: deskripsi || null,
             file: filePath || null,
             icon: icon || null,
-            sort_order: sortOrder ? parseInt(sortOrder) : null,
+            urutan: urutan ? parseInt(urutan) : null,
             status,
         });
 
         return NextResponse.json(result, { status: 201 });
     } catch (error: any) {
-        console.error('[API] Create commitment error:', error);
+        console.error('[API] Create layanan error:', error);
         return NextResponse.json(
-            { error: error.message || 'Gagal menambahkan komitmen pelayanan' },
+            { error: error.message || 'Gagal menambahkan layanan publik' },
             { status: 500 }
         );
     }

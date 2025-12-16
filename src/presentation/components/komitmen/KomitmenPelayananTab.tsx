@@ -334,20 +334,28 @@ export const KomitmenPelayananTab = () => {
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {commitment.file ? (
                                                 <div className="space-y-1">
-                                                    {getFilesList(commitment.file).map((filePath, idx) => (
-                                                        <a
-                                                            key={idx}
-                                                            href={filePath}
-                                                            download
-                                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline transition w-fit"
-                                                            title="Download file"
-                                                        >
-                                                            <Download className="w-4 h-4" />
-                                                            <span className="text-xs">
-                                                                Download File {getFilesList(commitment.file).length > 1 ? `(${idx + 1}/${getFilesList(commitment.file).length})` : ''}
-                                                            </span>
-                                                        </a>
-                                                    ))}
+                                                    {getFilesList(commitment.file).map((filePath, idx) => {
+                                                        // Convert path to API endpoint for proper file serving
+                                                        // From: /storage/commitments/file.pdf
+                                                        // To: /api/storage/commitments/file.pdf
+                                                        const apiPath = `/api${filePath}`;
+                                                        const fileName = getFileName(filePath);
+
+                                                        return (
+                                                            <a
+                                                                key={idx}
+                                                                href={apiPath}
+                                                                download={fileName}
+                                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline transition w-fit"
+                                                                title={`Download: ${fileName}`}
+                                                            >
+                                                                <Download className="w-4 h-4" />
+                                                                <span className="text-xs truncate max-w-xs">
+                                                                    {fileName} {getFilesList(commitment.file).length > 1 ? `(${idx + 1}/${getFilesList(commitment.file).length})` : ''}
+                                                                </span>
+                                                            </a>
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : (
                                                 <span className="text-gray-400">-</span>

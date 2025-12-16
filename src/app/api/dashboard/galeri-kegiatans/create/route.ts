@@ -7,7 +7,8 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
         const judul = formData.get('judul') as string;
-        const status = parseInt(formData.get('status') as string) || 1;
+        const statusStr = formData.get('status') as string;
+        const status = statusStr !== null && statusStr !== '' ? parseInt(statusStr) : 1;
         const fileInputs = formData.getAll('foto') as File[];
 
         // Validate

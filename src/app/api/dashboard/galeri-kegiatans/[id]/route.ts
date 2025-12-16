@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GaleriKegiatanController } from '@/modules/controllers/GaleriKegiatanController';
 import { UpdateGaleriKegiatanDTO } from '@/modules/dtos/galeri-kegiatan';
-import { saveMultipleGaleriKegiatanPhotos, validateGaleriKegiatanImage } from '@/shared/fileUploadHandler';
+import { saveMultipleGaleriKegiatanPhotos, validateGaleriKegiatanImage, deleteMultipleGaleriKegiatanPhotos } from '@/shared/fileUploadHandler';
 
 export async function GET(
     request: NextRequest,
@@ -70,7 +70,7 @@ export async function PUT(
             : [];
 
         // Handle new file uploads
-        let fotoPaths = [...existingFiles];
+        let fotoPaths: string[] = [];
 
         if (fileInputs && fileInputs.length > 0) {
             const validFiles: File[] = [];
@@ -89,9 +89,21 @@ export async function PUT(
             }
 
             if (validFiles.length > 0) {
+                // If new files provided, REPLACE old files (don't append)
                 const newPhotos = await saveMultipleGaleriKegiatanPhotos(validFiles);
-                fotoPaths.push(...newPhotos.split(','));
+                fotoPaths = newPhotos.split(',');
+
+                // Delete old files since they're being replaced
+                if (existingFiles.length > 0) {
+                    await deleteMultipleGaleriKegiatanPhotos(existingFilesStr);
+                }
+            } else {
+                // No new files provided, keep existing files
+                fotoPaths = [...existingFiles];
             }
+        } else {
+            // No files in request, keep existing files
+            fotoPaths = [...existingFiles];
         }
 
         // Create DTO

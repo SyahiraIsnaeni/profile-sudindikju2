@@ -30,7 +30,7 @@ interface Layanan {
 interface LayananFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: LayananFormData, layananId?: number) => Promise<void>;
+  onSubmit: (formData: LayananFormData, layananId?: number, remainingExistingFiles?: string[]) => Promise<void>;
   editingLayanan?: Layanan | null;
 }
 
@@ -85,12 +85,12 @@ export const LayananFormModal = ({
       setFormData({
         nama: editingLayanan.nama,
         deskripsi: editingLayanan.deskripsi || null,
-        file: editingLayanan.file || null,
+        file: null, // IMPORTANT: Set to null, existing files are tracked separately in existingFiles state
         icon: editingLayanan.icon || null,
         urutan: editingLayanan.urutan || null,
         status: editingLayanan.status,
       });
-      // Parse existing files (comma-separated)
+      // Parse existing files (comma-separated) - keep these separate
       const files = editingLayanan.file
         ? editingLayanan.file.split(',').map(f => f.trim()).filter(f => f)
         : [];
@@ -251,7 +251,7 @@ export const LayananFormModal = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData, editingLayanan?.id);
+      await onSubmit(formData, editingLayanan?.id, existingFiles);
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {

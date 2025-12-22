@@ -51,6 +51,7 @@ export const useLogin = () => {
     setSuccess(null);
 
     try {
+      console.log('🔐 Starting login...');
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -59,7 +60,9 @@ export const useLogin = () => {
         body: JSON.stringify(formData),
       });
 
+      console.log('📡 Login response status:', response.status);
       const data: LoginResponse = await response.json();
+      console.log('📡 Login response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Login gagal');
@@ -71,23 +74,34 @@ export const useLogin = () => {
 
       // Simpan user data di localStorage
       localStorage.setItem('user', JSON.stringify(data.user));
+      console.log('💾 User data saved to localStorage');
 
       // Set auth token di cookie (via API call)
-      await fetch('/api/auth/set-token', {
+      console.log('🔒 Setting auth token...');
+      const tokenResponse = await fetch('/api/auth/set-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ userId: data.user.id }),
       });
+      console.log('🔒 Token response status:', tokenResponse.status);
+
+      if (!tokenResponse.ok) {
+        const tokenError = await tokenResponse.json();
+        throw new Error(`Token setting failed: ${tokenError.error}`);
+      }
 
       setUser(data.user);
       setSuccess(`${data.message} Selamat datang, ${data.user.name}!`);
+      console.log('✅ Login successful');
 
       setTimeout(() => {
+        console.log('➡️ Redirecting to dashboard...');
         router.push('/dashboard');
       }, 2000);
     } catch (err: any) {
+      console.error('❌ Login error:', err);
       setError(err.message || 'Login gagal, coba lagi');
     } finally {
       setLoading(false);

@@ -121,16 +121,33 @@ model GaleriKegiatan {
 }
 
 model Layanan {
-  id         Int       @id @default(autoincrement())
-  nama       String    @db.VarChar(255)
-  deskripsi  String?   @db.Text
-  file       String?   @db.Text
-  icon       String?   @db.VarChar(255)
-  urutan     Int?
-  status     Int       @default(1)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
+   id         Int       @id @default(autoincrement())
+   nama       String    @db.VarChar(255)
+   deskripsi  String?   @db.Text
+   file       String?   @db.Text
+   icon       String?   @db.VarChar(255)
+   urutan     Int?
+   status     Int       @default(1)
+   created_at DateTime  @default(now())
+   updated_at DateTime  @updatedAt
+   deleted_at DateTime?
 
-  @@map("layanans")
+   @@map("layanans")
+}
+
+model Artikel {
+   id         Int       @id @default(autoincrement())
+   judul      String    @db.VarChar(255)
+   deskripsi  String?   @db.Text
+   kategori   String?   @db.VarChar(100)
+   gambar     String?   @db.Text
+   file       String?   @db.Text
+   penulis    String?   @db.VarChar(255)
+   tanggal    DateTime
+   status     Int       @default(1)
+   created_at DateTime  @default(now())
+   updated_at DateTime  @updatedAt
+   deleted_at DateTime?
+
+   @@map("artikels")
 }

@@ -222,35 +222,39 @@ export function validateGaleriKegiatanImage(file: File): { valid: boolean; error
 /**
  * Validate file before upload
  */
-export function validateUploadFile(file: File): { valid: boolean; error?: string } {
-   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-   const ALLOWED_TYPES = [
-     'application/pdf',
-     'application/msword',
-     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-     'application/vnd.ms-excel',
-     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-     'image/jpeg',
-     'image/png',
-     'image/gif',
-     'image/webp',
-   ];
+export function validateUploadFile(file: File, isImageOnly: boolean = false): { valid: boolean; error?: string } {
+    const MAX_FILE_SIZE = isImageOnly ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB for images, 10MB for files
+    const ALLOWED_TYPES = isImageOnly
+      ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      : [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+        ];
 
-   // Check file size
-   if (file.size > MAX_FILE_SIZE) {
-     return {
-       valid: false,
-       error: 'Ukuran file maksimal 10MB',
-     };
-   }
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        valid: false,
+        error: isImageOnly ? 'Ukuran gambar maksimal 5MB' : 'Ukuran file maksimal 10MB',
+      };
+    }
 
-   // Check file type
-   if (!ALLOWED_TYPES.includes(file.type)) {
-     return {
-       valid: false,
-       error: 'Tipe file tidak didukung. Gunakan: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, WEBP',
-     };
-   }
+    // Check file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return {
+        valid: false,
+        error: isImageOnly
+          ? 'Tipe gambar tidak didukung. Gunakan: JPEG, PNG, GIF, WEBP'
+          : 'Tipe file tidak didukung. Gunakan: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, WEBP',
+      };
+    }
 
-   return { valid: true };
+    return { valid: true };
 }

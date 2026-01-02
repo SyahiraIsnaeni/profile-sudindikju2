@@ -1,0 +1,1 @@
+export { ArtikelRepository } from './ArtikelRepository';

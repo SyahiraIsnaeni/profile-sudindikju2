@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLogin } from '@/presentation/composables/useLogin';
 import { LogOut, Menu, X, AlignJustify } from 'lucide-react';
@@ -16,8 +16,13 @@ export const Navbar = ({ toggleMobileSidebar, isMobileOpen, isCollapsed, toggleC
     const pathname = usePathname();
     const router = useRouter();
     const { logout, getCurrentUser } = useLogin();
-    const [isHydrated] = useState(() => typeof window !== 'undefined');
-    const user = isHydrated ? getCurrentUser() : null;
+    const [isHydrated, setIsHydrated] = useState(false);
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        setIsHydrated(true);
+        setUser(getCurrentUser());
+    }, []);
 
     const getPageTitle = (path: string) => {
         const titles: Record<string, string> = {

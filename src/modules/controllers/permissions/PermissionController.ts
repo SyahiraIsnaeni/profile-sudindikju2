@@ -42,7 +42,7 @@ export class PermissionController {
 
       return {
         success: true,
-        data: permissions.map((perm) => ({
+        data: permissions.map((perm: any) => ({
           id: perm.id,
           name: perm.name,
           detail: perm.detail,

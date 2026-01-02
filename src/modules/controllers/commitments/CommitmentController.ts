@@ -9,7 +9,7 @@ export class CommitmentController {
         try {
             const result = await commitmentRepository.getAll(query);
 
-            const commitmentsResponse: CommitmentResponse[] = result.commitments.map((commitment) => ({
+            const commitmentsResponse: CommitmentResponse[] = result.commitments.map((commitment: any) => ({
                 id: commitment.id,
                 name: commitment.name,
                 description: commitment.description,

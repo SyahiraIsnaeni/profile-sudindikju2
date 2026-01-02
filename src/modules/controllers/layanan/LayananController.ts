@@ -9,7 +9,7 @@ export class LayananController {
         try {
             const result = await layananRepository.getAll(query);
 
-            const layanansResponse: LayananResponse[] = result.layanans.map((layanan) => ({
+            const layanansResponse: LayananResponse[] = result.layanans.map((layanan: any) => ({
                 id: layanan.id,
                 nama: layanan.nama,
                 deskripsi: layanan.deskripsi,

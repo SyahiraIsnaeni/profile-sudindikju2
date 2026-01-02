@@ -1,3 +1,3 @@
-export { CreateArtikelDTO } from './CreateArtikelDTO';
-export { UpdateArtikelDTO } from './UpdateArtikelDTO';
-export { ArtikelQueryDTO } from './ArtikelQueryDTO';
+export type { CreateArtikelDTO } from './CreateArtikelDTO';
+export type { UpdateArtikelDTO } from './UpdateArtikelDTO';
+export type { ArtikelQueryDTO } from './ArtikelQueryDTO';

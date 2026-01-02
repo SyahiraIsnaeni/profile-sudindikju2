@@ -30,11 +30,11 @@ export class RoleController {
         prisma.role.count({ where }),
       ]);
 
-      const rolesResponse: RoleResponse[] = roles.map((role) => ({
+      const rolesResponse: RoleResponse[] = roles.map((role: any) => ({
         id: role.id,
         name: role.name,
         status: role.status,
-        permissions: role.rolePermissions.map((rp) => ({
+        permissions: role.rolePermissions.map((rp: any) => ({
           id: rp.permission.id,
           name: rp.permission.name,
           detail: rp.permission.detail,
@@ -73,7 +73,7 @@ export class RoleController {
         id: role.id,
         name: role.name,
         status: role.status,
-        permissions: role.rolePermissions.map((rp) => ({
+        permissions: role.rolePermissions.map((rp: any) => ({
           id: rp.permission.id,
           name: rp.permission.name,
           detail: rp.permission.detail,
@@ -123,7 +123,7 @@ export class RoleController {
         id: roleWithPermissions!.id,
         name: roleWithPermissions!.name,
         status: roleWithPermissions!.status,
-        permissions: roleWithPermissions!.rolePermissions.map((rp) => ({
+        permissions: roleWithPermissions!.rolePermissions.map((rp: any) => ({
           id: rp.permission.id,
           name: rp.permission.name,
           detail: rp.permission.detail,
@@ -195,7 +195,7 @@ export class RoleController {
         id: roleWithPermissions!.id,
         name: roleWithPermissions!.name,
         status: roleWithPermissions!.status,
-        permissions: roleWithPermissions!.rolePermissions.map((rp) => ({
+        permissions: roleWithPermissions!.rolePermissions.map((rp: any) => ({
           id: rp.permission.id,
           name: rp.permission.name,
           detail: rp.permission.detail,

@@ -36,7 +36,7 @@ export class UserController {
         prisma.user.count({ where }),
       ]);
 
-      const usersResponse: UserResponse[] = users.map((user) => ({
+      const usersResponse: UserResponse[] = users.map((user: any) => ({
         id: user.id,
         name: user.name,
         email: user.email,

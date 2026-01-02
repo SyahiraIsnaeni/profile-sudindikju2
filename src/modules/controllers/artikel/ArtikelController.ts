@@ -9,7 +9,7 @@ export class ArtikelController {
         try {
             const result = await artikelRepository.getAll(query);
 
-            const artikelsResponse: ArtikelResponse[] = result.artikels.map((artikel) => ({
+            const artikelsResponse: ArtikelResponse[] = result.artikels.map((artikel: any) => ({
                 id: artikel.id,
                 judul: artikel.judul,
                 deskripsi: artikel.deskripsi,

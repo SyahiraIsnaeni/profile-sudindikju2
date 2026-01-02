@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ArtikelController } from '@/modules/controllers/artikel/ArtikelController';
-import { saveMultipleArtikelFiles, validateArtikelFile } from '@/shared/artikelFileUploadHandler';
+import { saveMultipleArtikelFiles, validateArtikelFile } from '@/shared/fileUploadHandler';
 import { saveImageFile, validateImageFile } from '@/shared/imageUploadHandler';
 
 export async function POST(request: NextRequest) {

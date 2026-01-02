@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Permission } from '@prisma/client';
 
 export async function seedRolePermissions(prisma: PrismaClient) {
   try {
@@ -35,7 +35,7 @@ export async function seedRolePermissions(prisma: PrismaClient) {
 
     // Kasudin (Kepala Sudin): View, Create, Edit Master Data & Dashboard
     if (kasudinRole) {
-      const kasudinPermissions = allPermissions.filter((p) =>
+      const kasudinPermissions = allPermissions.filter((p: Permission) =>
         (p.name === 'Master Data' && ['view_master_data'].includes(p.detail)) ||
         (p.name === 'Dashboard' && p.detail === 'view_dashboard')
       );
@@ -60,7 +60,7 @@ export async function seedRolePermissions(prisma: PrismaClient) {
 
     // Kasubbag (Kepala Sub Bagian): View, Create, Edit Master Data
     if (kasubbagRole) {
-      const kasubbagPermissions = allPermissions.filter((p) =>
+      const kasubbagPermissions = allPermissions.filter((p: Permission) =>
         (p.name === 'Master Data' && ['view_master_data'].includes(p.detail)) ||
         (p.name === 'Dashboard' && p.detail === 'view_dashboard')
       );
@@ -85,7 +85,7 @@ export async function seedRolePermissions(prisma: PrismaClient) {
 
     // Kasi (Kepala Seksi): View Master Data & Dashboard only
     if (kasiRole) {
-      const kasiPermissions = allPermissions.filter((p) =>
+      const kasiPermissions = allPermissions.filter((p: Permission) =>
         (p.name === 'Master Data' && p.detail === 'view_master_data') ||
         (p.name === 'Dashboard' && p.detail === 'view_dashboard')
       );
@@ -110,7 +110,7 @@ export async function seedRolePermissions(prisma: PrismaClient) {
 
     // Staf: View Dashboard only
     if (stafRole) {
-      const stafPermissions = allPermissions.filter((p) =>
+      const stafPermissions = allPermissions.filter((p: Permission) =>
         p.name === 'Dashboard' && p.detail === 'view_dashboard'
       );
 

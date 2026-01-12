@@ -37,7 +37,7 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen, isCollapsed, setIsColla
             icon: FileText,
             submenu: [
                 { label: 'Artikel', icon: FileText, href: '/dashboard/media/artikel' },
-                { label: 'Pengumuman', icon: FileText, href: '/dashboard/media/pengumuman' },
+                { label: 'Pengumuman', icon: FileText, href: '/dashboard/pengumuman/create' },
                 { label: 'Galeri Kegiatan', icon: FileText, href: '/dashboard/media/galeri-kegiatan' },
             ],
         },
@@ -107,8 +107,8 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen, isCollapsed, setIsColla
                                             if (isMobileOpen) setIsMobileOpen(false);
                                         }}
                                         className={`w-full flex items-center px-4 py-3 rounded-lg transition text-sm font-medium ${expandedMenu === item.label
-                                                ? 'bg-blue-800 border-l-4 border-white text-white'
-                                                : 'hover:bg-blue-800 text-blue-100'
+                                            ? 'bg-blue-800 border-l-4 border-white text-white'
+                                            : 'hover:bg-blue-800 text-blue-100'
                                             } ${isCollapsed ? 'lg:justify-center lg:px-3' : ''}`}
                                         title={isCollapsed ? item.label : ''}
                                     >
@@ -128,8 +128,8 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen, isCollapsed, setIsColla
                                                     key={subitem.label}
                                                     href={subitem.href}
                                                     className={`flex items-center px-4 py-2 rounded-lg transition text-sm ${isActive(subitem.href)
-                                                            ? 'bg-blue-700 text-white'
-                                                            : 'hover:bg-blue-700 text-blue-100'
+                                                        ? 'bg-blue-700 text-white'
+                                                        : 'hover:bg-blue-700 text-blue-100'
                                                         }`}
                                                     onClick={() => setIsMobileOpen(false)}
                                                 >
@@ -145,8 +145,8 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen, isCollapsed, setIsColla
                                 <a
                                     href={item.href}
                                     className={`flex items-center px-4 py-3 rounded-lg transition text-sm font-medium ${isActive(item.href)
-                                            ? 'bg-blue-800 border-l-4 border-white text-white'
-                                            : 'hover:bg-blue-800 text-blue-100'
+                                        ? 'bg-blue-800 border-l-4 border-white text-white'
+                                        : 'hover:bg-blue-800 text-blue-100'
                                         } ${isCollapsed ? 'lg:justify-center lg:px-3' : ''}`}
                                     onClick={() => setIsMobileOpen(false)}
                                     title={isCollapsed ? item.label : ''}

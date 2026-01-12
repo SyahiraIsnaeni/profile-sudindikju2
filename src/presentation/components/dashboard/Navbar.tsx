@@ -17,7 +17,7 @@ export const Navbar = ({ toggleMobileSidebar, isMobileOpen, isCollapsed, toggleC
     const router = useRouter();
     const { logout, getCurrentUser } = useLogin();
     const [isHydrated, setIsHydrated] = useState(false);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         setIsHydrated(true);

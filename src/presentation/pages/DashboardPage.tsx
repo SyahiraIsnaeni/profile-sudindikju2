@@ -4,7 +4,11 @@ import { DashboardLayout } from '@/presentation/components/dashboard/DashboardLa
 import { ProtectedRoute } from '@/presentation/components/shared/ProtectedRoute';
 import { useLogin } from '@/presentation/composables/useLogin';
 
-export const DashboardPage = () => {
+interface DashboardPageProps {
+  stats?: React.ReactNode;
+}
+
+export const DashboardPage = ({ stats }: DashboardPageProps) => {
   const { getCurrentUser } = useLogin();
   const user = getCurrentUser();
 
@@ -23,53 +27,8 @@ export const DashboardPage = () => {
             </p>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Card 1 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-500 hover:shadow-lg transition">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-gray-600 text-xs md:text-sm font-medium uppercase tracking-wide">
-                    Total Users
-                  </h3>
-                  <p className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
-                    42
-                  </p>
-                </div>
-                <div className="text-4xl text-blue-500 opacity-20">👥</div>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500 hover:shadow-lg transition">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-gray-600 text-xs md:text-sm font-medium uppercase tracking-wide">
-                    Artikel
-                  </h3>
-                  <p className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
-                    18
-                  </p>
-                </div>
-                <div className="text-4xl text-green-500 opacity-20">📄</div>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-500 hover:shadow-lg transition">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-gray-600 text-xs md:text-sm font-medium uppercase tracking-wide">
-                    Program
-                  </h3>
-                  <p className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
-                    7
-                  </p>
-                </div>
-                <div className="text-4xl text-orange-500 opacity-20">🎯</div>
-              </div>
-            </div>
-          </div>
+          {/* Stats Cards (Injected from Server) */}
+          {stats}
 
           {/* Bottom Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

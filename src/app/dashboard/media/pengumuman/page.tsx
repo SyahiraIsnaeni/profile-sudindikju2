@@ -1,5 +1,5 @@
-import { PengumumanPage } from '@/presentation/pages/PengumumanPage';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-    return <PengumumanPage />;
+    redirect('/dashboard/pengumuman');
 }

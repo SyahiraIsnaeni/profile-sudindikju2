@@ -37,7 +37,7 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen, isCollapsed, setIsColla
             icon: FileText,
             submenu: [
                 { label: 'Artikel', icon: FileText, href: '/dashboard/media/artikel' },
-                { label: 'Pengumuman', icon: FileText, href: '/dashboard/pengumuman/create' },
+                { label: 'Pengumuman', icon: FileText, href: '/dashboard/pengumuman' },
                 { label: 'Galeri Kegiatan', icon: FileText, href: '/dashboard/media/galeri-kegiatan' },
             ],
         },

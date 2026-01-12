@@ -37,15 +37,32 @@ export const useArtikel = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filters state
+  const [filterKategori, setFilterKategori] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined);
+
   useEffect(() => {
     fetchArtikels();
-  }, [page, pageSize]);
+  }, [page, pageSize, filterKategori, filterStatus]);
 
   const fetchArtikels = async () => {
     try {
       setLoading(true);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+      });
+
+      if (filterKategori) {
+        queryParams.append('kategori', filterKategori);
+      }
+
+      if (filterStatus !== undefined) {
+        queryParams.append('status', filterStatus.toString());
+      }
+
       const res = await fetch(
-        `/api/dashboard/artikels?page=${page}&pageSize=${pageSize}`
+        `/api/dashboard/artikels?${queryParams.toString()}`
       );
       if (!res.ok) throw new Error('Gagal mengambil data artikel');
       const data: PaginatedResponse<Artikel> = await res.json();
@@ -89,5 +106,9 @@ export const useArtikel = () => {
     setPageSize,
     meta,
     refetchArtikels,
+    setFilterKategori,
+    setFilterStatus,
+    filterKategori,
+    filterStatus
   };
 };

@@ -2,19 +2,44 @@
 
 Dokumentasi lengkap untuk setup dan menjalankan project ini.
 
+**🎯 Architecture:** Local PostgreSQL + Docker Next.js
+
 ---
 
 ## 📋 Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
-- [Setup Lokal](#setup-lokal)
-- [Docker Setup](#docker-setup)
+- [Quick Start](#quick-start)
+- [Detailed Setup](#detailed-setup)
 - [Database & Migration](#database--migration)
-- [Seeding Database](#seeding-database)
 - [Running Application](#running-application)
 - [Useful Commands](#useful-commands)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## ⚡ Quick Start
+
+**See [SETUP_LOCAL_DB.md](./SETUP_LOCAL_DB.md) for detailed setup with local PostgreSQL**
+
+```bash
+# 1. Setup local PostgreSQL database (follow SETUP_LOCAL_DB.md)
+
+# 2. Install dependencies
+npm install
+
+# 3. Generate Prisma Client
+npm run prisma:generate
+
+# 4. Create initial migration
+npm run db:migrate:dev -- --name initial_schema
+
+# 5. Start Docker container
+npm run docker:up
+
+# 6. Open http://localhost:3000
+```
 
 ---
 
@@ -25,7 +50,7 @@ Pastikan sudah install:
 - **Node.js** v20+ ([download](https://nodejs.org/))
 - **npm** atau **yarn**
 - **Docker Desktop** ([download](https://www.docker.com/products/docker-desktop))
-- **PostgreSQL** (akan auto-run di Docker)
+- **PostgreSQL** ([download](https://www.postgresql.org/download/)) - installed locally on your device
 
 Verify install:
 ```bash
@@ -96,79 +121,72 @@ profile-sudindikju2/
 
 ---
 
-## 🚀 Setup Lokal
+## 🚀 Detailed Setup
 
-### 1. Clone & Install Dependencies
+### 1. Setup Local PostgreSQL
+
+**👉 Follow [SETUP_LOCAL_DB.md](./SETUP_LOCAL_DB.md) - Complete guide for:**
+- Creating PostgreSQL database & user
+- Verifying connections
+- Configuring environment variables
+
+### 2. Clone & Install Dependencies
 
 ```bash
-# Clone project (jika belum)
+# Clone project
 git clone <repository-url>
 cd profile-sudindikju2
 
 # Install dependencies
 npm install
-
-# Install tambahan untuk seeder & Docker
-npm install bcryptjs
-npm install --save-dev ts-node
 ```
 
-### 2. Setup Environment Variables
+### 3. Configure Environment Variables
 
-Buat file `.env` di root folder:
+Copy example and update:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your local PostgreSQL credentials:
 
 ```env
-# Database Configuration
-DB_HOST=postgres
+# Local PostgreSQL
+DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=aska_sudin
-DB_USER=root
-DB_PASSWORD=sudin_secure_password_2025
-DATABASE_URL=postgresql://root:root@postgres:5432/aska_sudin
+DB_USER=postgres
+DB_PASSWORD=your_password_here
 
-# Next.js
+DATABASE_URL=postgresql://postgres:your_password_here@localhost:5432/aska_sudin
+
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 **⚠️ IMPORTANT:** Jangan push `.env` ke Git! Sudah ada di `.gitignore`.
 
----
-
-## 🐳 Docker Setup
-
-### 1. Start Docker Containers
+### 4. Start Docker Containers
 
 ```bash
-# Build images & start containers (background)
-docker-compose up -d
+# Start app service (Next.js di Docker)
+npm run docker:up
 
 # Check status
 docker-compose ps
 
-# Expected: postgres dan app services "Up"
+# Expected: sudin_app service "Up"
 ```
 
-### 2. Verify PostgreSQL Connection
-
-```bash
-# Test connection ke PostgreSQL
-docker-compose exec postgres psql -U root -d aska_sudin -c "SELECT 1"
-
-# Expected: (1 row) dengan nilai 1
-```
-
-### 3. View Logs
+### 5. View Logs
 
 ```bash
 # Real-time logs
-docker-compose logs -f
+npm run docker:logs
 
-# Logs hanya app service
-docker-compose logs -f app
-
-# Logs hanya postgres
-docker-compose logs -f postgres
+# Stop logs viewing
+# Press Ctrl + C
 ```
 
 ---
@@ -178,84 +196,35 @@ docker-compose logs -f postgres
 ### 1. Generate Prisma Client
 
 ```bash
-# Inside container
-docker-compose exec app npx prisma generate
+npm run prisma:generate
 
 # Expected: ✔ Generated Prisma Client
 ```
 
-### 2. Create Migration File (Auto-Generate Timestamp)
+### 2. Create Migration File
 
 User membuat file migration dengan timestamp otomatis, tapi isi SQL sendiri:
 
-**Step 1: Create Migration File**
-```bash
-npm run create:migration -- create_articles_table
-
-# Expected:
-# ✅ Created migration folder: prisma/migrations/20251204120530_create_articles_table
-# ✅ Created migration file: prisma/migrations/20251204120530_create_articles_table/migration.sql
-# 
-# 📝 Next steps:
-#    1. Edit file: prisma/migrations/20251204120530_create_articles_table/migration.sql
-#    2. Write your SQL code
-#    3. Run: npm run db:migrate
-#    4. Verify: docker-compose exec postgres psql -U root -d aska_sudin -c "\dt"
-```
-
-**Step 2: Edit Migration File**
-
-File: `prisma/migrations/20251204120530_create_articles_table/migration.sql`
-
-```sql
--- create_articles_table
-CREATE TABLE "articles" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "title" VARCHAR(255) NOT NULL,
-    "content" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL
-);
-
-CREATE INDEX "articles_title_idx" ON "articles"("title");
-```
-
-### 3. Apply Migration File Ke Database
+**Step 1: Create/Update Migration Interactively**
 
 ```bash
-# Apply migration yang baru dibuat
-npm run db:migrate
+npm run db:migrate:dev -- --name add_new_table
 
-# Expected: ✔ Ran 1 migration(s)
+# Follow prompts to:
+# 1. Generate migration from schema.prisma changes
+# 2. Name your migration
+# 3. Review and apply
 ```
 
-### 4. Apply SEMUA Migration Files Sekaligus
+**Step 2: Or Create Migration Manually**
 
-```bash
-# Apply semua pending migrations
-npm run db:migrate
-
-# Expected: ✔ Ran 3 migration(s)
-# (jika ada 3 pending migrations)
-```
-
-### 5. Check Migration Status
-
-```bash
-docker-compose exec app npx prisma migrate status
-
-# Expected: Shows applied & pending migrations
-```
-
-### 6. Update Schema.prisma (Optional)
-
-Untuk Prisma Client auto-generation, update `schema.prisma`:
+Edit `prisma/schema.prisma` to add new model:
 
 ```prisma
 model Article {
   id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
+  title     String  @db.VarChar(255)
+  content   String? @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -263,31 +232,102 @@ model Article {
 }
 ```
 
-Terus generate Prisma Client:
+Then create migration:
 
 ```bash
-docker-compose exec app npx prisma generate
+npm run db:migrate:dev -- --name add_articles_table
+```
+
+### 3. Check Migration Status
+
+```bash
+npx prisma migrate status
+
+# Expected: Shows applied & pending migrations
+```
+
+### 4. View Schema in UI
+
+```bash
+npm run prisma:studio
+
+# Opens browser at http://localhost:5555 to view/edit data
 ```
 
 ---
 
-### **Full Migration Workflow:**
+## 🌱 Seeding Database
+
+### 1. Run Seed Script
 
 ```bash
-# 1. Generate migration file dengan timestamp otomatis
-npm run create:migration -- create_articles_table
+npm run db:seed
 
-# 2. Edit migration.sql (tulis SQL sendiri)
-# vi prisma/migrations/20251204120530_create_articles_table/migration.sql
+# Expected: Seeding completed successfully
+```
 
-# 3. Apply file itu ke database
-npm run db:migrate
+### 2. Create Custom Seeder
 
-# 4. Verify table created
-docker-compose exec postgres psql -U root -d aska_sudin -c "\dt"
+Edit `prisma/seed.ts`:
 
-# 5. Update schema.prisma (opsional)
-# Add model Article { ... }
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  // Create users
+  await prisma.user.createMany({
+    data: [
+      {
+        name: "Admin Sudin",
+        email: "admin@gmail.com",
+        password: "hashed_password",
+      },
+      {
+        name: "User Sudin",
+        email: "user@gmail.com",
+        password: "hashed_password",
+      },
+    ],
+  });
+
+  console.log("Seeding completed");
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+```
+
+Then run:
+
+```bash
+npm run db:seed
+```
+
+---
+
+### **Complete Workflow: Schema → Migration → Seed:**
+
+```bash
+# 1. Update schema.prisma with new model
+# 2. Create migration (interactive or manual)
+npm run db:migrate:dev -- --name descriptive_name
+
+# 3. Review and apply migration
+# 4. Regenerate Prisma Client if needed
+npm run prisma:generate
+
+# 5. Update prisma/seed.ts with new data
+# 6. Run seeder
+npm run db:seed
 
 # 6. Generate Prisma Client
 docker-compose exec app npx prisma generate
@@ -511,95 +551,136 @@ docker-compose exec postgres psql -U root -d aska_sudin
 
 ### npm Scripts
 
+**Development:**
 ```bash
-npm run dev                  # Development server
-npm run build                # Build production
-npm start                    # Start production
+npm run dev                  # Start Next.js development server (local)
 npm run lint                 # ESLint check
+```
+
+**Docker:**
+```bash
+npm run docker:up            # Start Docker containers
+npm run docker:down          # Stop Docker containers
+npm run docker:logs          # View Docker logs
+npm run docker:restart       # Restart containers
+npm run docker:build         # Rebuild Docker image
+```
+
+**Database:**
+```bash
+npm run prisma:generate      # Generate Prisma Client
+npm run prisma:studio        # Open Prisma Studio UI
+npm run db:migrate:dev       # Create & apply migration (interactive)
+npm run db:migrate:reset     # ⚠️ Reset database (loses data)
 npm run db:seed              # Run seeder
-npm run db:migrate           # Deploy migrations
-npm run docker:up            # Start docker
-npm run docker:down          # Stop docker
-npm run docker:logs          # View logs
-npm run generate:seeder      # Generate seeder template
+```
+
+**Production:**
+```bash
+npm run build                # Build production bundle
+npm start                    # Start production server
 ```
 
 ---
 
 ## 🆘 Troubleshooting
 
-### 1. Docker Container Tidak Running
+### 1. PostgreSQL Connection Error
+
+```
+Error: connect ECONNREFUSED 127.0.0.1:5432
+```
+
+**Solution:**
+- Ensure PostgreSQL is running locally
+- Verify DATABASE_URL in `.env` is correct
+- Check DB_HOST is `localhost` (not `postgres`)
+- Verify credentials match your PostgreSQL setup
 
 ```bash
-# Check status
-docker-compose ps
+# Test local PostgreSQL connection
+psql -U postgres -d aska_sudin -c "SELECT 1"
+```
 
-# Jika ada error, cek logs
-docker-compose logs app
-docker-compose logs postgres
+### 2. Docker Container Won't Start
 
-# Rebuild & restart
+```bash
+# Check logs
+npm run docker:logs
+
+# Or specific container
+docker-compose logs sudin_app
+
+# Rebuild container
+npm run docker:build
 docker-compose down
-docker-compose up -d --build
+npm run docker:up
 ```
 
-### 2. DATABASE_URL tidak ter-load
-
-```bash
-# Verify .env file ada
-ls .env
-
-# Verify DATABASE_URL di container
-docker-compose exec app env | Select-String DATABASE_URL
-
-# Jika kosong, restart docker
-docker-compose down
-docker-compose up -d
-```
-
-### 3. Migration Failed
-
-```bash
-# Check migration status
-docker-compose exec app npx prisma migrate status
-
-# Reset & redo
-docker-compose exec app npx prisma migrate reset
-```
-
-### 4. PrismaClient Error
+### 3. Prisma Client Error
 
 ```bash
 # Regenerate Prisma Client
-docker-compose exec app npx prisma generate
+npm run prisma:generate
 
-# Clear cache
+# Clear cache and reinstall
 rm -rf node_modules/.prisma
 npm install
+```
+
+### 4. Migration Issues
+
+```bash
+# Check migration status
+npx prisma migrate status
+
+# View pending migrations
+# Fix any SQL errors in migration files
+
+# Reset database (⚠️ WARNING: loses all data)
+npm run db:migrate:reset
+
+# Then reapply migrations
+npm run db:migrate:dev
 ```
 
 ### 5. Seeder Error
 
 ```bash
-# Run seeder with verbose
-docker-compose exec app npm run db:seed
+# Run seeder with error output
+npm run db:seed
 
-# Check seed.ts file
+# Check seeding script
 cat prisma/seed.ts
 
-# Check seeder files
-cat prisma/seeders/user.seeder.ts
+# Check data in database
+npm run prisma:studio
 ```
 
 ### 6. Port Already in Use
 
-Jika port 3000 atau 5432 sudah dipakai:
+If port 3000 is taken:
 
 ```bash
-# Change port di docker-compose.yml
+# Change port in docker-compose.yml
 # ports:
-#   - "3001:3000"    (3000 → 3001)
-#   - "5433:5432"    (5432 → 5433)
+#   - "3001:3000"
+
+# Then access: http://localhost:3001
+```
+
+### 7. Environment Variables Not Loading
+
+```bash
+# Verify .env file exists
+ls -la .env
+
+# Check content (be careful with secrets)
+# cat .env
+
+# Restart Docker to reload variables
+docker-compose down
+docker-compose up -d
 ```
 
 ---

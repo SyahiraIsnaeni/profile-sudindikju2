@@ -11,15 +11,16 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",
+    "docker:build": "docker-compose build --no-cache",
     "create:migration": "node scripts/create-migration.js",
     "db:migrate": "docker-compose exec app npx prisma migrate deploy",
-    "db:seed": "docker-compose exec app npm run db:seed",
-    "db:migrate:reset": "docker-compose exec app npx prisma migrate reset",
+    "db:migrate:dev": "npx prisma migrate dev",
+    "db:seed": "npx ts-node --transpile-only prisma/seed.ts",
+    "db:migrate:reset": "npx prisma migrate reset",
     "generate:seeder": "node scripts/generate-seeder.js",
     "create:seeder": "node scripts/create-seeder.js",
-    "seed": "npx ts-node --transpile-only prisma/seed.ts",
-    "seed:all": "docker-compose exec app npm run seed",
-    "seed:run": "docker-compose exec app npx ts-node --transpile-only prisma/seeders"
+    "prisma:generate": "npx prisma generate",
+    "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",

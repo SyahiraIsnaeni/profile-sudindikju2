@@ -10,7 +10,7 @@ async function main() {
     
     // Generate Prisma Client dulu
     console.log('⚙️ Generating Prisma Client...');
-    await execAsync('npx prisma generate');
+    // await execAsync('npx prisma generate'); // Skip - already generated on npm install
     
     await runAllSeeders();
     console.log('✅ Seeding completed successfully!');
